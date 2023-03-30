@@ -1,7 +1,5 @@
-test = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; GTB5; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; Maxthon; InfoPath.1; .NET CLR 3.5.30729; .NET CLR 3.0.30618)"
-
-def collecting_user_agent_from_file():
-    file = open("counting.txt", "r")
+def collecting_user_agent_from_file(filename):
+    file = open(filename, "r")
     in_file = file.readlines()
     in_file = [line.rstrip() for line in in_file]
     user_agents = [line.split("||") for line in in_file]
@@ -11,20 +9,20 @@ def collecting_user_agent_from_file():
     # print(user_agens[4][1])
 
 
-def write_user_agent_in_file(user_agents):
-    file = open("counting.txt", "w")
+def write_user_agent_in_file(user_agents, filename):
+    file = open(filename, "w")
     for i in range(len(user_agents)):
         for j in range(2):
             if j == 0:
-                file.write(user_agents[i][j] + "||")
+                file.write(user_agents[i][j] + " || ")
             else:
-                file.write(user_agents[i][j])
+                file.write(str(user_agents[i][j]))
                 file.write("\n")
     file.close()
 
 
-def check_for_user_agent_in_file(UserAgent):
-    user_agents = collecting_user_agent_from_file()
+def check_for_user_agent_in_file(UserAgent, filename):
+    user_agents = collecting_user_agent_from_file(filename)
     in_list = False
     for i in range(len(user_agents)):
         if UserAgent == user_agents[i][0]:
@@ -34,8 +32,4 @@ def check_for_user_agent_in_file(UserAgent):
             in_list = True
     if in_list == 0:
         user_agents.append([UserAgent, 1])
-    write_user_agent_in_file(user_agents)
-
-
-if __name__ == '__main__':
-    check_for_user_agent_in_file(test)
+    write_user_agent_in_file(user_agents, filename)

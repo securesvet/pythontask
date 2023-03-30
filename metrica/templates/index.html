@@ -1,0 +1,17 @@
+<!DOCTYPE HTML PUBLIC>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Web page example</title>
+</head>
+<body>
+<ul>{% for m in menu %}
+<li>{{m}}</li>
+{% endfor %}
+</ul>
+</body>
+<script>
+    let ua = window.navigator.userAgent;
+    console.log(ua)
+</script>
+</html>
