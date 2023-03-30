@@ -33,3 +33,17 @@ def check_for_user_agent_in_file(UserAgent, filename):
     if in_list == 0:
         user_agents.append([UserAgent, 1])
     write_user_agent_in_file(user_agents, filename)
+
+
+def counting_all_visit(filename):
+    user_agents = collecting_user_agent_from_file(filename)
+    counter_visit = 0
+    for i in range(len(user_agents)):
+        counter_visit += user_agents[i][1]
+    return counter_visit
+
+
+def counting_all_unique_visitor(filename):
+    user_agents = collecting_user_agent_from_file(filename)
+    counter_visitor = len(user_agents)
+    return counter_visitor
