@@ -14,7 +14,7 @@ def write_user_agent_in_file(user_agents, filename):
     for i in range(len(user_agents)):
         for j in range(2):
             if j == 0:
-                file.write(user_agents[i][j] + " || ")
+                file.write(user_agents[i][j] + "||")
             else:
                 file.write(str(user_agents[i][j]))
                 file.write("\n")
@@ -39,7 +39,7 @@ def counting_all_visit(filename):
     user_agents = collecting_user_agent_from_file(filename)
     counter_visit = 0
     for i in range(len(user_agents)):
-        counter_visit += user_agents[i][1]
+        counter_visit += int(user_agents[i][1])
     return counter_visit
 
 

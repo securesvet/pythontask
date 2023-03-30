@@ -5,10 +5,8 @@
     <title>Web page example</title>
 </head>
 <body>
-<ul>{% for m in menu %}
-<li>{{m}}</li>
-{% endfor %}
-</ul>
+<h1>Посещений всего: {{count_overall}}</h1>
+<h1>Уникальных посещений: {{count_unique}}</h1>
 </body>
 <script>
     let ua = window.navigator.userAgent;
