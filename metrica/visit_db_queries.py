@@ -12,7 +12,6 @@ def add_visit(ip_address: str):
     базу данных, выставляя параметры по умолчанию, если клиента
     не было в базе данных, если он там был, то обновляет данные о посещении
     :param ip_address:
-    :return:
     """
     try:
         visit = Visit.get(Visit.ip_address == ip_address)
