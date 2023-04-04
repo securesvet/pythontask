@@ -2,7 +2,7 @@ from visit_db import *
 
 
 def create_visit_table():
-    """Создаём таблицу Visit, если она еще не существует"""
+    """Создаёт таблицу Visit, если она еще не существует"""
     Visit.create_table(fail_silently=True)
 
 

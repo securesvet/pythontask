@@ -1,9 +1,6 @@
 from peewee import *
 from datetime import datetime
 
-# Поключаемся к базе данных
-db = SqliteDatabase('VISIT.db')
-
 
 class Visit(Model):
     ip_address = CharField()
@@ -12,4 +9,4 @@ class Visit(Model):
     today_visit = IntegerField()
 
     class Meta:
-        database = db
+        database = SqliteDatabase('VISIT.db')
