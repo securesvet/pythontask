@@ -3,10 +3,14 @@
 
 ## Metrica:
 
-Запускаем через терминал 
+Запускаем flask_server.py, что-то такое должно выйти в консоль:
 ```
-./ngrok http 5000
+ * Serving Flask app 'flask_server'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.29:5000
 ```
 
-Заходим на сайт, ссылка на который будет выглядеть примерно так:
-> https://63d7-188-226-95-63.eu.ngrok.i
+Заходим по второму адресу, он для внутренней сети, можно протестировать количество посещений с помощью подключения к этой самой внутренней сети через другое устройство, затем при обновлении страницы будет обновляться счётчик, вместе с ним и база данных.
