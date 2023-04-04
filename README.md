@@ -3,7 +3,7 @@
 
 ## Metrica:
 
-Запускаем flask+server.py, что-то такое должно выйти в консоль:
+Запускаем flask_server.py, что-то такое должно выйти в консоль:
 ```
  * Serving Flask app 'flask_server'
  * Debug mode: off
