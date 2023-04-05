@@ -16,8 +16,11 @@ def add_visit(ip_address: str):
     try:
         visit = Visit.get(Visit.ip_address == ip_address)
         visit.count_visits += 1
-        visit.today_visit += 1
-        visit.last_visit = datetime.now().date()
+        if visit.last_visit.date() == datetime.now().date():
+            visit.today_visit += 1
+        else:
+            visit.today_visit = 1
+        visit.last_visit = datetime.now()
         visit.save()
     except Visit.DoesNotExist:
         visit = Visit(ip_address=ip_address, last_visit=datetime.now().date(), today_visit=1)
@@ -30,19 +33,6 @@ def get_table():
     """
     for user in Visit.select():
         print(user.id, user.ip_address, user.count_visits, user.last_visit, user.today_visit)
-
-
-def get_count_info_by_ip(ip_address: str) -> tuple[int, int, int]:
-    """
-    Функция принимает IP-адрес (str), возвращает tuple с информацией о визитах сайта
-    :param ip_address:
-    :return:
-    """
-    try:
-        visit = Visit.get(Visit.ip_address == ip_address)
-        return visit.count_visits, visit.today_visit, visit.last_visit
-    except Visit.DoesNotExist:
-        return 0, 0, 0
 
 
 def get_counts_overall() -> int:
@@ -63,6 +53,21 @@ def get_unique_visits() -> int:
     :return:
     """
     return Visit.select().count()
+
+
+def get_today_overall_visits() -> int:
+    """
+    Функция возвращает количество всех посещений за сегодняшний день
+    :return:
+    """
+    count_today_overall = 0
+    for client in Visit.select():
+        if client.last_visit.date() == datetime.now().date():
+            count_today_overall += client.today_visit
+        else:
+            client.today_visit = 0
+        client.save()
+    return count_today_overall
 
 
 def get_today_unique_visits() -> int:
