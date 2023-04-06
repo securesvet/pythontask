@@ -6,6 +6,7 @@ def create_visit_table():
     Visit.create_table(fail_silently=True)
 
 
+# Сделать новую таблицу конкретных посещений Foreign keys
 def add_visit(ip_address: str):
     """
     Функция принимает IP-адрес клиента, затем добавляет его в

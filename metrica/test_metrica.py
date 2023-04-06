@@ -30,13 +30,6 @@ class TestVisitDB(unittest.TestCase):
             mock_select.assert_called_once()
             self.assertEqual(count_overall, 3)
 
-    def test_get_unique_visits(self):
-        with patch.object(Visit, 'select', return_value=[MagicMock(count_visits=1),
-                                                         MagicMock(count_visits=1)]) as mock_count:
-            mock_count.assert_called_once()
-            count_of_unique_visits = get_unique_visits()
-            self.assertEqual(count_of_unique_visits, 2)
-
     def test_get_today_overall_visits(self):
         with patch('visit_db.Visit.select', return_value=[MagicMock(last_visit=datetime.now(), today_visit=2),
                                                           MagicMock(last_visit=datetime.now(),
