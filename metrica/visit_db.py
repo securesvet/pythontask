@@ -7,7 +7,7 @@ db = SqliteDatabase('VISIT.db')
 class Visit(Model):
     ip_address = CharField()
     count_visits = IntegerField(default=1)
-    last_visit = DateTimeField(default=datetime.now())
+    last_visit = DateTimeField(default=datetime.now().date())
     today_visit = IntegerField()
 
     class Meta:
