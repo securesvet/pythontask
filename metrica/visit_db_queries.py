@@ -33,7 +33,7 @@ def add_visit(header: str):
         visit.save()
 
 
-def get_all_ip():
+def get_all_ip() -> list:
     """
     Функция выводит вообще все ip
     :return: list c ip
@@ -45,7 +45,7 @@ def get_all_ip():
     return ips
 
 
-def get_all_visits_by_ip(ip_address: str):
+def get_all_visits_by_ip(ip_address: str) -> list:
     """
     Функция принимает ip_address клиента
     Возвращает список дат его по ip
@@ -60,7 +60,7 @@ def get_all_visits_by_ip(ip_address: str):
     return dates
 
 
-def get_all_ip_by_dates(data_time_start: datetime, data_time_end:  datetime):
+def get_all_ip_by_dates(data_time_start: datetime, data_time_end:  datetime) -> dict[str, list]:
     """
     Функция принимает две даты начала отсчета и конца
     Возвращает словарь где ключ ip клиента, а значение list с временем посещения клиента в заданном промежутке времени
@@ -80,9 +80,9 @@ def get_all_ip_by_dates(data_time_start: datetime, data_time_end:  datetime):
     return ips_and_date
 
 
-def get_all_ip_by_date(data_time_start: datetime):
+def get_all_ip_by_date(data_time_start: datetime) -> dict[str, list]:
     """
-    Функция принимает две даты начала отсчета
+    Функция принимает две даты начала отсчета.
     Возвращает словарь где ключ ip клиента, а значение list с временем посещения клиента в промежутке от заданной даты до настоящего времени (формат datatime)
     :param data_time_start: datatime
     :return: {str(ip):[datatime]}
