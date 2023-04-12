@@ -3,17 +3,40 @@ from datetime import datetime
 
 db = SqliteDatabase('VISIT.db')
 
+#TODO
+# Добавить
+# Ограничения на ip_address DONE
+# Ограничение на уникальность столбика DONE
+# help test DONE
+# Сохранять не только айпи адрес, но и user-agent DONE
+# Нормализация базы данных DONE ???
 
-# Добавить ограничения на ip_address, ограничение на уникальность столбика
-# help test
-# Сохранять не только айпи адрес, но и user-agent
-# Нормализация базы данных
-class Visit(Model):
 
-    ip_address = CharField(help_text='ip')
-    count_visits = IntegerField(default=1)
-    last_visit = DateTimeField(default=datetime.now().date())
-    today_visit = IntegerField(default=0)
+class BaseModel(Model):
+    id = PrimaryKeyField()
 
     class Meta:
         database = db
+        order_by = 'id'
+
+
+class IP(BaseModel):
+    """
+    В данной таблице хранятся только Ip
+    """
+    ip_address = CharField(max_length=14, help_text='ip', unique=True)
+
+    class Meta:
+        table_name = 'IPs'
+
+
+class IPVisit(BaseModel):
+    """
+    Тут хранятся все даты и user-agents в привязке к ip
+    """
+    user_agent = CharField(help_text='user-agent')
+    data_time = DateTimeField(default=datetime.now, help_text='date of visit')
+    ip_id = ForeignKeyField(IP)
+
+    class Meta:
+        table_name = 'Visits'
