@@ -1,86 +1,102 @@
 from visit_db import *
+import re
 
 
 def create_visit_table():
-    """Создаёт таблицу Visit, если она еще не существует"""
-    Visit.create_table(fail_silently=True)
+    """Создаёт бд, если она еще не существует"""
+    IP.create_table(fail_silently=True)
+    IPVisit.create_table(fail_silently=True)
 
 
-# Сделать новую таблицу конкретных посещений Foreign keys
-def add_visit(ip_address: str):
+def add_visit(header: str):
     """
     Функция принимает IP-адрес клиента, затем добавляет его в
     базу данных, выставляя параметры по умолчанию, если клиента
     не было в базе данных, если он там был, то обновляет данные о посещении
-    :param ip_address:
+    :param header: str
     """
+    header_split = header.split('\r\n')
+    ip_address = re.search('[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}', header_split[0]).group()
+    user_agent = header_split[4][12:]
+    date_of_visit = datetime.now()
+
     try:
-        visit = Visit.get(Visit.ip_address == ip_address)
-        visit.count_visits += 1
-        if visit.last_visit.date() == datetime.now().date():
-            visit.today_visit += 1
-        else:
-            visit.today_visit = 1
-        visit.last_visit = datetime.now()
+        ip = IP.get(IP.ip_address == ip_address)
+        visit = IPVisit(user_agent=user_agent, ip_id=ip.id)
         visit.save()
-    except Visit.DoesNotExist:
-        visit = Visit(ip_address=ip_address, last_visit=datetime.now().date(), today_visit=1)
+    except DoesNotExist:
+        ip = IP(ip_address=ip_address)
+        ip.save()
+
+        ip = ip.get(IP.ip_address == ip_address)
+        visit = IPVisit(user_agent=user_agent, ip_id=ip.id)
         visit.save()
 
 
-def get_table():
+def get_all_ip():
     """
-    Функция, не принимающая аргументов, выводит таблицу из Visit.db в консоль
+    Функция выводит вообще все ip
+    :return: list c ip
     """
-    for user in Visit.select():
-        print(user.id, user.ip_address, user.count_visits, user.last_visit, user.today_visit)
+    ips = []
+    for ip in IP.select():
+        ips.append(ip.ip_address)
+
+    return ips
 
 
-def get_counts_overall() -> int:
+def get_all_visits_by_ip(ip_address: str):
     """
-    Функция не принимет аргументов, запрашивает данные из VISIT.db и суммирует поля count_visits,
-    возвращает сумму всех посещений от всех клиентов
-    :return:
+    Функция принимает ip_address клиента
+    Возвращает список дат его по ip
+    :param ip_address:
+    :return: list с datatime
     """
-    count_overall = 0
-    for user in Visit.select():
-        count_overall += user.count_visits
-    return count_overall
+    dates = []
+    ip = IP.get(IP.ip_address == ip_address)
+    all_dates = IPVisit.select().where(ip.id == ip.id)
+    for date in all_dates:
+        dates.append(date.data_time)
+    return dates
 
 
-def get_unique_visits() -> int:
+def get_all_ip_by_dates(data_time_start: datetime, data_time_end:  datetime):
     """
-    Функция возвращает количество уникальных посещений, выводя количество строк в таблице
-    :return:
+    Функция принимает две даты начала отсчета и конца
+    Возвращает словарь где ключ ip клиента, а значение list с временем посещения клиента в заданном промежутке времени
+    :param data_time_start: datatime
+    :param data_time_end: datatime
+    :return: {str(ip):[datatime]}
     """
-    return Visit.select().count()
+    ips_and_date = {}
+    date = []
+    all_visit = IPVisit.select()
+    for visit in all_visit:
+        if data_time_start <= visit.data_time <= data_time_end:
+            date.append(visit.data_time)
+        ip = IP.get(IP.id == visit.ip_id)
+        ips_and_date[ip.ip_address] = date
+
+    return ips_and_date
 
 
-def get_today_overall_visits() -> int:
+def get_all_ip_by_date(data_time_start: datetime):
     """
-    Функция возвращает количество всех посещений за сегодняшний день
-    :return:
+    Функция принимает две даты начала отсчета
+    Возвращает словарь где ключ ip клиента, а значение list с временем посещения клиента в промежутке от заданной даты до настоящего времени (формат datatime)
+    :param data_time_start: datatime
+    :return: {str(ip):[datatime]}
     """
-    count_today_overall = 0
-    for client in Visit.select():
-        if client.last_visit.date() == datetime.now().date():
-            count_today_overall += client.today_visit
-        else:
-            client.today_visit = 0
-        client.save()
-    return count_today_overall
+    ips_and_date = {}
+    date = []
+    all_visit = IPVisit.select()
+    for visit in all_visit:
+        if data_time_start <= visit.data_time:
+            date.append(visit.data_time)
+        ip = IP.get(IP.id == visit.ip_id)
+        ips_and_date[ip.ip_address] = date
 
-
-def get_today_unique_visits() -> int:
-    """
-    Функция возвращает уникальных посетителей за сегодняшний день
-    :return:
-    """
-    count_of_unique_visits_today = 0
-    for client in Visit.select():
-        if client.last_visit.date() == datetime.now().date():
-            count_of_unique_visits_today += 1
-    return count_of_unique_visits_today
+    return ips_and_date
 
 
 def visit_close_connection():
