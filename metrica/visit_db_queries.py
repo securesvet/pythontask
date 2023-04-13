@@ -44,13 +44,16 @@ def get_all_visits() -> list:
     Функция возвращает список со всеми клиентами
     :return: list
     """
-    visits = IPVisit.select()
-    list_of_visitors = []
-    for line in visits:
-        ip_address = IP.get(id=line.ip_id).ip_address
-        visitor = Visit(ip_address, line.user_agent, line.date_time)
-        list_of_visitors.append(visitor)
-    return list_of_visitors
+    try:
+        visits = IPVisit.select()
+        list_of_visitors = []
+        for line in visits:
+            ip_address = IP.get(id=line.ip_id).ip_address
+            visitor = Visit(ip_address, line.user_agent, line.date_time)
+            list_of_visitors.append(visitor)
+        return list_of_visitors
+    except DoesNotExist:
+        return []
 
 
 def get_all_visits_by_ip(ip_address: str) -> list:
@@ -60,13 +63,16 @@ def get_all_visits_by_ip(ip_address: str) -> list:
     :param ip_address:
     :return: list
     """
-    list_of_visitors = []
-    ip = IP.get(IP.ip_address == ip_address)
-    visits = IPVisit.select().where(ip.id == ip.id)
-    for line in visits:
-        visitor = Visit(ip_address, line.user_agent, line.date_time)
-        list_of_visitors.append(visitor)
-    return list_of_visitors
+    try:
+        list_of_visitors = []
+        ip = IP.get(IP.ip_address == ip_address)
+        visits = IPVisit.select().where(ip.id == ip.id)
+        for line in visits:
+            visitor = Visit(ip_address, line.user_agent, line.date_time)
+            list_of_visitors.append(visitor)
+        return list_of_visitors
+    except DoesNotExist:
+        return []
 
 
 def get_all_ip_by_dates(date_time_start: datetime, date_time_end=datetime.now()) \
@@ -79,13 +85,18 @@ def get_all_ip_by_dates(date_time_start: datetime, date_time_end=datetime.now())
     :param date_time_end: datatime
     :return: list
     """
+    if date_time_start > date_time_end:
+        temp = date_time_end
+        date_time_end = date_time_start
+        date_time_start = temp
+
     list_of_visitors = []
     date = []
     all_visit = IPVisit.select()
     for visit in all_visit:
         if date_time_start <= visit.date_time <= date_time_end:
             date.append(visit.date_time)
-        ip_address = IP.get(IP.id == visit.ip_id)
+        ip_address = IP.get(IP.id == visit.ip_id).ip_address
         visitor = Visit(ip_address, visit.user_agent, visit.date_time)
         list_of_visitors.append(visitor)
     return list_of_visitors
@@ -101,14 +112,22 @@ def get_all_visits_by_ip_and_dates(ip_address: str, date_time_start: datetime, d
     :param date_time_end:str
     :return: list
     """
-    list_of_visitors = []
-    ip = IP.get(IP.ip_address == ip_address)
-    all_visits = IPVisit.select().where(ip.id == ip.id)
-    for visit in all_visits:
-        if date_time_start <= visit.date_time <= date_time_end:
-            visitor = Visit(ip_address, visit.user_agent, visit.date_time)
-            list_of_visitors.append(visitor)
-    return list_of_visitors
+    try:
+        if date_time_start > date_time_end:
+            temp = date_time_end
+            date_time_end = date_time_start
+            date_time_start = temp
+
+        list_of_visitors = []
+        ip = IP.get(IP.ip_address == ip_address)
+        all_visits = IPVisit.select().where(ip.id == ip.id)
+        for visit in all_visits:
+            if date_time_start <= visit.date_time <= date_time_end:
+                visitor = Visit(ip_address, visit.user_agent, visit.date_time)
+                list_of_visitors.append(visitor)
+        return list_of_visitors
+    except DoesNotExist:
+        return []
 
 
 def visit_close_connection():
