@@ -85,7 +85,7 @@ def get_all_ip_by_dates(date_time_start: datetime, date_time_end=datetime.now())
     for visit in all_visit:
         if date_time_start <= visit.date_time <= date_time_end:
             date.append(visit.date_time)
-        ip_address = IP.get(IP.id == visit.ip_id)
+        ip_address = IP.get(IP.id == visit.ip_id).ip_address
         visitor = Visit(ip_address, visit.user_agent, visit.date_time)
         list_of_visitors.append(visitor)
     return list_of_visitors

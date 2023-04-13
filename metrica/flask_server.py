@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for
 from visit_db_queries import *
 from forms import SearchForm, IpDateForm, IpForm, DateForm, UserAgentForm
 from flask_wtf.csrf import CSRFProtect
-import os
 
 app = Flask(__name__)
 
@@ -19,23 +18,15 @@ def index():
     Request.remote_addr возвращает IP-адрес клиента
     """
     current_ip_addr = request.remote_addr
-    header = request.headers
+    current_user_agent = request.user_agent
 
-    add_visit(str(header))
+    add_visit(current_ip_addr, str(current_user_agent))
 
     return render_template('index.html')
 
 
 @app.route('/view_info', methods=['GET', 'POST'])
 def view_info():
-    # form = SearchForm()
-    # if form.validate_on_submit():
-    #     ip_data = str(form.ip.data)
-    #     start_date_data = str(form.start_date.data)
-    #     end_date_data = str(form.end_date.data)
-    #     text_h2 = '<h2> Info about {0} on dates from: {1} to {2}'.format(ip_data, start_date_data, end_date_data)
-    #     text = '<ul><li>' + str(form.ip.data) + '</li></ul>'
-    #     return text_h2
     return render_template('info.html')
 
 
@@ -43,9 +34,15 @@ def view_info():
 def info_by_date():
     form = DateForm()
     if form.validate_on_submit():
-        start_date_data = str(form.start_date.data)
-        end_date_data = str(form.end_date.data)
-        return '<h2>From {0} to {1}</h2>'.format(start_date_data, end_date_data)
+        start_date = datetime.combine(form.start_date.data, datetime.min.time())
+        end_date = datetime.combine(form.end_date.data, datetime.min.time())
+        visits = get_all_ip_by_dates(start_date, end_date)
+        html_text = '<h2>From {0} to {1}</h2>'.format(str(start_date), str(end_date))
+        for visitor in visits:
+            html_text += '<ul>IP address: {0}<br>UserAgent: {1}<br>DateTime: {2}</ul>'.format(visitor.ip_address,
+                                                                                              visitor.user_agent,
+                                                                                              visitor.date_time)
+        return html_text
     return render_template('info_by_date.html', form=form)
 
 
@@ -60,10 +57,10 @@ def info_by_ip():
     form = IpForm()
     if form.validate_on_submit():
         ip_address = form.ip.data
-        dates = get_all_visits_by_ip(ip_address)
+        list_of_visitor = get_all_visits_by_ip(ip_address)
         html_text = '<h1>Query for {0}'.format(ip_address)
-        for date in dates:
-            html_text += '<li><ul>{0}</ul></li>'.format(date)
+        for visitor in list_of_visitor:
+            html_text += '<ul>Date visited: {0}<br>User Agent: {1}</ul>'.format(visitor.date_time, visitor.user_agent)
         return html_text
     print(form.ip.data)
     return render_template('info_by_ip.html', form=form)
@@ -73,16 +70,24 @@ def info_by_ip():
 def info_by_ip_date():
     form = IpDateForm()
     if form.validate_on_submit():
-        ip_address = form.ip.data
-        start_date = form.start_date.data
-        end_date = form.end_date.data
-        return '<h1>Query for {0} from {1} to {2}</h1>'.format(ip_address, start_date, end_date)
+        start_date = datetime.combine(form.start_date.data, datetime.min.time())
+        end_date = datetime.combine(form.end_date.data, datetime.min.time())
+        visits = get_all_visits_by_ip_and_dates(str(form.ip.data), start_date, end_date)
+        html_text = '<h2>From {0} to {1} for {2}</h2>'.format(str(start_date), str(end_date), str(form.ip.data))
+        for visitor in visits:
+            html_text += '<ul>UserAgent: {0}<br>DateTime: {1}</ul>'.format(visitor.user_agent, visitor.date_time)
+        return html_text
     return render_template('info_by_ip_date.html', form=form)
 
 
 @app.route('/info_ip_table', methods=['GET', 'POST'])
 def info_ip_table():
-    return render_template('info_ip_table.html')
+    visits = get_all_visits()
+    html_text = ''
+    for visitor in visits:
+        html_text += '<ul>IP address: {0}<br>Date visited: {1}<br>User Agent: {2}</ul>' \
+            .format(visitor.ip_address, visitor.date_time, visitor.user_agent)
+    return html_text
 
 
 if __name__ == "__main__":
