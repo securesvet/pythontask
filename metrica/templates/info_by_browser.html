@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block main %}
+{% from '/includes/_formhelpers.html' import render_field %}
+<h1>Введите данные, по которым искать в базе данных информацию о посещениях</h1>
+<form action="" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.user_agent.label }} <br>
+        {{ form.user_agent }}<br>
+        {% for error in form.user_agent.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+</form>
+{% endblock %}
