@@ -14,7 +14,7 @@ class BaseModel(Model):
 
 class IP(BaseModel):
     """
-    В данной таблице хранятся только Ip
+    В данной таблице хранятся только IP и ID
     """
     ip_address = CharField(max_length=14, help_text='ip', unique=True)
 
