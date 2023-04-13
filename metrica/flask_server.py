@@ -37,12 +37,13 @@ def info_by_date():
         start_date = datetime.combine(form.start_date.data, datetime.min.time())
         end_date = datetime.combine(form.end_date.data, datetime.min.time())
         visits = get_all_ip_by_dates(start_date, end_date)
-        html_text = '<h2>From {0} to {1}</h2>'.format(str(start_date), str(end_date))
-        for visitor in visits:
-            html_text += '<ul>IP address: {0}<br>UserAgent: {1}<br>DateTime: {2}</ul>'.format(visitor.ip_address,
-                                                                                              visitor.user_agent,
-                                                                                              visitor.date_time)
-        return html_text
+        if len(visits) != 0:
+            html_text = '<h2>From {0} to {1}</h2>'.format(str(start_date), str(end_date))
+            for visitor in visits:
+                html_text += '<ul>IP address: {0}<br>UserAgent: {1}<br>DateTime: {2}</ul>'.format(visitor.ip_address,
+                                                                                                  visitor.user_agent,
+                                                                                                  visitor.date_time)
+            return html_text
     return render_template('info_by_date.html', form=form)
 
 
@@ -55,14 +56,17 @@ def info_by_browser():
 @app.route('/info_by_ip', methods=['GET', 'POST'])
 def info_by_ip():
     form = IpForm()
-    if form.validate_on_submit():
-        ip_address = form.ip.data
-        list_of_visitor = get_all_visits_by_ip(ip_address)
-        html_text = '<h1>Query for {0}'.format(ip_address)
-        for visitor in list_of_visitor:
-            html_text += '<ul>Date visited: {0}<br>User Agent: {1}</ul>'.format(visitor.date_time, visitor.user_agent)
-        return html_text
-    print(form.ip.data)
+    try:
+        if form.validate_on_submit():
+            ip_address = form.ip.data
+            list_of_visitor = get_all_visits_by_ip(ip_address)
+            if len(list_of_visitor) != 0:
+                html_text = '<h1>Query for {0}'.format(ip_address)
+                for visitor in list_of_visitor:
+                    html_text += '<ul>Date visited: {0}<br>User Agent: {1}</ul>'.format(visitor.date_time, visitor.user_agent)
+                return html_text
+    except DoesNotExist:
+        return "<h1>No such IP</h1>"
     return render_template('info_by_ip.html', form=form)
 
 
@@ -73,10 +77,11 @@ def info_by_ip_date():
         start_date = datetime.combine(form.start_date.data, datetime.min.time())
         end_date = datetime.combine(form.end_date.data, datetime.min.time())
         visits = get_all_visits_by_ip_and_dates(str(form.ip.data), start_date, end_date)
-        html_text = '<h2>From {0} to {1} for {2}</h2>'.format(str(start_date), str(end_date), str(form.ip.data))
-        for visitor in visits:
-            html_text += '<ul>UserAgent: {0}<br>DateTime: {1}</ul>'.format(visitor.user_agent, visitor.date_time)
-        return html_text
+        if len(visits) != 0:
+            html_text = '<h2>From {0} to {1} for {2}</h2>'.format(str(start_date), str(end_date), str(form.ip.data))
+            for visitor in visits:
+                html_text += '<ul>UserAgent: {0}<br>DateTime: {1}</ul>'.format(visitor.user_agent, visitor.date_time)
+            return html_text
     return render_template('info_by_ip_date.html', form=form)
 
 
@@ -92,5 +97,5 @@ def info_ip_table():
 
 if __name__ == "__main__":
     create_visit_table()
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0')
     visit_close_connection()
