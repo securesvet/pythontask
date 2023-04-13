@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from visit_db_queries import *
-from forms import SearchForm
+from forms import SearchForm, IpDateForm, IpForm, DateForm, UserAgentForm
 from flask_wtf.csrf import CSRFProtect
 import os
 
@@ -23,18 +23,7 @@ def index():
 
     add_visit(str(header))
 
-    print("IP-address connected: " + current_ip_addr)
-
-    print('all ip')
-    print(get_all_ip())
-    print('all visits by current id')
-    print(get_all_visits_by_ip(current_ip_addr))
-    print('all visits today')
-    print(get_all_ip_by_date(datetime(2023, 4, 12)))
-    print('all visit today between 22 and 23')
-    print(get_all_ip_by_dates(datetime(2023, 4, 12, 22), datetime(2023, 4, 12, 23)))
-    form = SearchForm()
-    return render_template('index.html', form=form)
+    return render_template('index.html')
 
 
 @app.route('/view_info', methods=['GET', 'POST'])
@@ -52,7 +41,7 @@ def view_info():
 
 @app.route('/info_by_date', methods=['GET', 'POST'])
 def info_by_date():
-    form = SearchForm()
+    form = DateForm()
     if form.validate_on_submit():
         start_date_data = str(form.start_date.data)
         end_date_data = str(form.end_date.data)
@@ -62,22 +51,27 @@ def info_by_date():
 
 @app.route('/info_by_browser', methods=['GET', 'POST'])
 def info_by_browser():
-    form = SearchForm()
+    form = UserAgentForm()
     return render_template('info_by_browser.html', form=form)
 
 
 @app.route('/info_by_ip', methods=['GET', 'POST'])
 def info_by_ip():
-    form = SearchForm()
+    form = IpForm()
     if form.validate_on_submit():
         ip_address = form.ip.data
-        return '<h1>Query for {0}'.format(ip_address)
+        dates = get_all_visits_by_ip(ip_address)
+        html_text = '<h1>Query for {0}'.format(ip_address)
+        for date in dates:
+            html_text += '<li><ul>{0}</ul></li>'.format(date)
+        return html_text
+    print(form.ip.data)
     return render_template('info_by_ip.html', form=form)
 
 
 @app.route('/info_by_ip_date', methods=['GET', 'POST'])
 def info_by_ip_date():
-    form = SearchForm()
+    form = IpDateForm()
     if form.validate_on_submit():
         ip_address = form.ip.data
         start_date = form.start_date.data
