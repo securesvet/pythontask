@@ -1,50 +1,81 @@
-import unittest
-from datetime import timedelta
-from unittest.mock import MagicMock, patch
 from visit_db_queries import *
+import unittest
+from unittest.mock import patch
+from visit_db import *
 
 
-class TestVisitDB(unittest.TestCase):
+class TestVisit(unittest.TestCase):
+    def setUp(self):
+        self.db = SqliteDatabase(':memory:')
+        self.db.bind([IP, IPVisit], bind_refs=False, bind_backrefs=False)
+        self.db.connect()
+        self.db.create_tables([IP, IPVisit])
 
-    @patch('visit_db.Visit.create_table')
-    def test_create_visit_table(self, mock_create_table):
+    def tearDown(self):
+        self.db.drop_tables([IP, IPVisit])
+        self.db.close()
+
+    def test_create_visit_table(self):
         create_visit_table()
-        mock_create_table.assert_called_once()
+        self.assertTrue(IP.table_exists())
+        self.assertTrue(IPVisit.table_exists())
 
     def test_add_visit(self):
-        ip_address = "localhost"
-        with patch('visit_db.Visit.get',
-                   return_value=MagicMock(count_visits=0, last_visit=datetime.now(), today_visit=0)) as mock_get:
-            add_visit(ip_address)
-            mock_get.assert_called_once_with(Visit.ip_address == ip_address)
+        add_visit('192.168.0.1',
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                  'Chrome/58.0.3029.110 Safari/537.3')
+        self.assertEqual(IP.select().count(), 1)
+        self.assertEqual(IPVisit.select().count(), 1)
 
-    def test_get_table(self):
-        with patch('builtins.print') as mock_print:
-            get_table()
-            mock_print.assert_called()
+    def test_add_visit_existing_ip(self):
+        IP.create(ip_address='192.168.0.1')
+        add_visit('192.168.0.1',
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                  'Chrome/58.0.3029.110 Safari/537.3')
+        self.assertEqual(IP.select().count(), 1)
+        self.assertEqual(IPVisit.select().count(), 1)
 
-    def test_get_counts_overall(self):
-        with patch('visit_db.Visit.select',
-                   return_value=[MagicMock(count_visits=1), MagicMock(count_visits=2)]) as mock_select:
-            count_overall = get_counts_overall()
-            mock_select.assert_called_once()
-            self.assertEqual(count_overall, 3)
+    def test_get_all_visits(self):
+        IP.create(ip_address='192.168.0.1')
+        IPVisit.create(ip_id=1,
+                       user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+                                  ' Chrome/58.0.3029.110 Safari/537.3',
+                       date_time=datetime.now())
+        visits = get_all_visits()
+        self.assertEqual(len(visits), 1)
+        self.assertIsInstance(visits[0], Visit)
 
-    def test_get_today_overall_visits(self):
-        with patch('visit_db.Visit.select', return_value=[MagicMock(last_visit=datetime.now(), today_visit=2),
-                                                          MagicMock(last_visit=datetime.now(),
-                                                                    today_visit=1)]) as mock_select:
-            count_today_overall = get_today_overall_visits()
-            mock_select.assert_called_once()
-            self.assertEqual(count_today_overall, 3)
+    def test_get_all_visits_by_ip(self):
+        IP.create(ip_address='192.168.0.1')
+        IPVisit.create(ip_id=1,
+                       user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                                  'Chrome/58.0.3029.110 Safari/537.3',
+                       date_time=datetime.now())
+        visits = get_all_visits_by_ip('192.168.0.1')
+        self.assertEqual(len(visits), 1)
+        self.assertIsInstance(visits[0], Visit)
 
-    def test_get_today_unique_visits(self):
-        with patch('visit_db.Visit.select', return_value=[MagicMock(last_visit=datetime.now()),
-                                                          MagicMock(last_visit=datetime.now()), MagicMock(
-                last_visit=datetime.now() - timedelta(days=1))]) as mock_select:
-            count_of_unique_visits_today = get_today_unique_visits()
-            mock_select.assert_called_once()
-            self.assertEqual(count_of_unique_visits_today, 2)
+    def test_get_all_ip_by_dates(self):
+        IP.create(ip_address='192.168.0.1')
+        IPVisit.create(ip_id=1,
+                       user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                                  'Chrome/58.0.3029.110 Safari/537.3',
+                       date_time=datetime.now())
+        visits = get_all_ip_by_dates(datetime.now().replace(hour=0, minute=0, second=0),
+                                     datetime.now().replace(hour=23, minute=59, second=59))
+        self.assertEqual(len(visits), 1)
+        self.assertIsInstance(visits[0], Visit)
+
+    def test_get_all_visits_by_ip_and_dates(self):
+        IP.create(ip_address='192.168.0.1')
+        IPVisit.create(ip_id=1,
+                       user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                                  'Chrome/58.0.3029.110 Safari/537.3',
+                       date_time=datetime.now())
+        visits = get_all_visits_by_ip_and_dates('192.168.0.1', datetime.now().replace(hour=0, minute=0, second=0),
+                                                datetime.now().replace(hour=23, minute=59, second=59))
+        self.assertEqual(len(visits), 1)
+        self.assertIsInstance(visits[0], Visit)
 
     @patch('visit_db.db.close')
     def test_visit_close_connection(self, mock_close):
