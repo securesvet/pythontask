@@ -2,6 +2,13 @@ from visit_db import *
 import re
 
 
+class Visit:
+    def __init__(self, ip_address, user_agent, datetime):
+        self.ip_address = ip_address
+        self.user_agent = user_agent
+        self.datetime = datetime
+
+
 def create_visit_table():
     """Создаёт бд, если она еще не существует"""
     IP.create_table(fail_silently=True)
@@ -18,7 +25,6 @@ def add_visit(header: str):
     header_split = header.split('\r\n')
     ip_address = re.search('[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}', header_split[0]).group()
     user_agent = header_split[4][12:]
-    date_of_visit = datetime.now()
 
     try:
         ip = IP.get(IP.ip_address == ip_address)
@@ -33,34 +39,30 @@ def add_visit(header: str):
         visit.save()
 
 
-def get_all_ip() -> list:
-    """
-    Функция выводит вообще все ip
-    :return: list c ip
-    """
-    ips = []
-    for ip in IP.select():
-        ips.append(ip.ip_address)
-
-    return ips
+def get_all_visits() -> list:
+    visits = IPVisit.select()
+    list_of_visit = []
+    for line in visits:
+        ip_address = IP.get(id=line.ip_id).ip_address
+        visitor = Visit(ip_address, line.user_agent, line.data_time)
+        list_of_visit.append(visitor)
+    return list_of_visit
 
 
 def get_all_visits_by_ip(ip_address: str) -> list:
     """
-    Функция принимает ip_address клиента
-    Возвращает список дат его по ip
-    :param ip_address:
-    :return: list с datatime
+
     """
-    dates = []
+    list_of_visits = []
     ip = IP.get(IP.ip_address == ip_address)
-    all_dates = IPVisit.select().where(ip.id == ip.id)
-    for date in all_dates:
-        dates.append(date.data_time)
-    return dates
+    visits = IPVisit.select().where(ip.id == ip.id)
+    for line in visits:
+        visitor = Visit(ip_address, line.user_agent, line.data_time)
+        list_of_visits.append(visitor)
+    return list_of_visits
 
 
-def get_all_ip_by_dates(data_time_start: datetime, data_time_end:  datetime) -> dict[str, list]:
+def get_all_ip_by_dates(data_time_start: datetime, data_time_end=datetime.now()) -> dict[str, list]:
     """
     Функция принимает две даты начала отсчета и конца
     Возвращает словарь где ключ ip клиента, а значение list с временем посещения клиента в заданном промежутке времени
@@ -80,23 +82,15 @@ def get_all_ip_by_dates(data_time_start: datetime, data_time_end:  datetime) -> 
     return ips_and_date
 
 
-def get_all_ip_by_date(data_time_start: datetime) -> dict[str, list]:
+def get_all_visits_by_ip_and_dates(ip_address: str, date_time_start: datetime, date_time_end=datetime.now()) -> list:
     """
-    Функция принимает две даты начала отсчета.
-    Возвращает словарь где ключ ip клиента, а значение list с временем посещения клиента в промежутке от заданной даты до настоящего времени (формат datatime)
-    :param data_time_start: datatime
-    :return: {str(ip):[datatime]}
+    Функция принимает ip_address клиента, две даты (начала и конца отсчета). Возвращает list со всеми датами посещения сайта этого клиента.
+    :param ip_address:
+    :param date_time_start:
+    :param date_time_end:
+    :return: list of datetime
     """
-    ips_and_date = {}
-    date = []
-    all_visit = IPVisit.select()
-    for visit in all_visit:
-        if data_time_start <= visit.data_time:
-            date.append(visit.data_time)
-        ip = IP.get(IP.id == visit.ip_id)
-        ips_and_date[ip.ip_address] = date
 
-    return ips_and_date
 
 
 def visit_close_connection():

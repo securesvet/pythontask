@@ -16,16 +16,9 @@ def get_my_ip() -> str:
 
     add_visit(str(header))
 
-    print("IP-address connected: " + current_ip_addr)
-
-    print('all ip')
-    print(get_all_ip())
-    print('all visits by current id')
-    print(get_all_visits_by_ip(current_ip_addr))
-    print('all visits today')
-    print(get_all_ip_by_date(datetime(2023,4,12)))
-    print('all visit today between 22 and 23')
-    print(get_all_ip_by_dates(datetime(2023,4,12,22), datetime(2023,4,12,23)))
+    all_visits = get_all_visits()
+    # for visit in all_visits:
+    #     print(visit.ip_address, visit.user_agent, visit.datetime)
 
 
     return render_template('index.html')
