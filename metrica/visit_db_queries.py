@@ -42,7 +42,7 @@ def add_visit(ip_address: str, user_agent: str):
 def get_all_visits() -> list:
     """
     Функция возвращает список со всеми клиентами
-    :return:
+    :return: list
     """
     visits = IPVisit.select()
     list_of_visitors = []
@@ -70,14 +70,14 @@ def get_all_visits_by_ip(ip_address: str) -> list:
 
 
 def get_all_ip_by_dates(date_time_start: datetime, date_time_end=datetime.now()) \
-        -> dict[str, list]:
+        -> list:
     """
     Функция принимает две даты начала отсчета и конца(по дефолту настоящее время).
     Возвращает список со всеми клиентами в этом промежутке времени
 
     :param date_time_start: datatime
     :param date_time_end: datatime
-    :return:
+    :return: list
     """
     list_of_visitors = []
     date = []
