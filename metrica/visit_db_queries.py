@@ -6,6 +6,7 @@ class Visit:
     """
     Сущность посетителя сайта
     """
+
     def __init__(self, ip_address, user_agent, date_time):
         self.ip_address = ip_address
         self.user_agent = user_agent
@@ -102,14 +103,15 @@ def get_all_visits() -> list:
 #     return list_of_visitors
 
 
-def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1,1,1), date_time_end=datetime.now()) -> list:
+def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1, 1, 1),
+                                   date_time_end=datetime.now()) -> list:
     """
     Функция принимает ip_address клиента, две даты (начала и конца отсчета(конец по дефолту настоящее время)).
     Возвращает список со всеми посещениями клиента в этом промежутке времени
 
     :param ip_address: str
-    :param date_time_start:str
-    :param date_time_end:str
+    :param date_time_start: str
+    :param date_time_end: str
     :return: list
     """
     try:
