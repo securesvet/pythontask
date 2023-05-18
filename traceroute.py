@@ -9,8 +9,6 @@ from colorama import Fore, Back, Style
 
 timer = time.time()
 
-MIN_SLEEP = 1000
-
 
 def is_valid_ip(ip_address: str) -> bool:
     """
@@ -70,6 +68,10 @@ def calc_checksum(header):
 
 
 class Traceroute:
+    """
+    Класс Traceroute реализует работу консольной утилиты
+    """
+
     def __init__(self, destination_host: str, count_of_packets: int, max_hops: int, packet_size: int, timeout: int):
         self.destination_host = destination_host
         self.count_of_packets = count_of_packets
@@ -77,6 +79,8 @@ class Traceroute:
         self.packet_size = packet_size
         self.timeout = timeout
         self.previous_sender_hostname = ''
+        self.MIN_SLEEP = 1000
+        self.ICMP_ECHO_REQUEST = 8
 
         self.ttl = 1
 
@@ -86,29 +90,54 @@ class Traceroute:
             self.destination_ip = None
 
     def print_start_line(self):
-        print(f'traceroute to {self.destination_host} ({self.destination_ip}),'
-              f' {self.max_hops} hops max, {self.packet_size} byte packets ')
+        """
+        Функция выводит самую первую строку команды Traceroute, пример:
+        traceroute to www.mursvet.ru (80.87.110.79), 52 hops max, 32 byte packets
+        :return:
+        """
+        if self.destination_ip:
+            print(f'traceroute to {self.destination_host} ({self.destination_ip}),'
+                  f' {self.max_hops} hops max, {self.packet_size} byte packets ')
+        else:
+            print(f'traceroute to {self.destination_host}, {self.max_hops} hops max, {self.packet_size} byte packets ')
 
     def print_host_unknown(self):
+        """
+        Вывод утилиты в случае, если был передан неверный destination
+        :return:
+        """
         print(Fore.RED + f'traceroute: unknown host {self.destination_host}')
 
-    def print_trace(self, delay, ip_header):
+    def get_icmp_packet(self):
+        """
+        Функция чтения ICMP-пакета (вариант для Unix-систем)
+        :return:
+        """
+        pass
 
+    def print_trace(self, delay, ip_header):
+        """
+        Вывод пути для хоста
+        :param delay:
+        :param ip_header:
+        :return:
+        """
         ip_address = socket.inet_ntoa(struct.pack('!I', ip_header['Source_IP']))
         try:
             sender_hostname = socket.gethostbyname(ip_address)[0]
         except socket.error:
             sender_hostname = ip_address
 
+        # Проверка на то, что мы не ходим по одному и тому же хосту
         if self.previous_sender_hostname != sender_hostname:
             # По дефолту TTL до десяти
             if self.ttl < 10:
-                print('')
+                print(f'{self.ttl} ')
 
     def start_traceroute(self):
         icmp_header = None
         while self.ttl <= self.max_hops:
-            self.seq_no = 0
+            pass
 
     def tracer(self):
         try:
@@ -121,7 +150,7 @@ class Traceroute:
     def traceroute(self):
         if self.destination_ip:
             self.print_start_line()
-            self.tracer()
+            # self.tracer()
         else:
             self.print_host_unknown()
 
@@ -137,8 +166,8 @@ if __name__ == '__main__':
         description='Program for displaying possible paths and measuring transit delays of packets',
         epilog='coded by Murzin Sviatoslav and Iuriev Artem')
     parser.add_argument('destination_host', type=str, default='www.mursvet.ru')
-    parser.add_argument('-m', '--max_hops', required=False, type=int)
-    parser.add_argument('-p', '--packet_size', required=False, type=int)
+    parser.add_argument('-m', '--max-hops', required=False, type=int)
+    parser.add_argument('-p', '--packet-size', required=False, type=int)
     # args = parser.parse_args(sys.argv[1:])
     args = parser.parse_args(['www.mursvet.ru'])
     destination_host = args.destination_host
