@@ -112,6 +112,7 @@ class Traceroute:
         self.__icmp_keys = ['type', 'code', 'checksum', 'identifier', 'sequence number']
         self.__ip_keys = ['VersionIHL', 'Type_of_Service', 'Total_Length', 'Identification', 'Flags_FragOffset', 'TTL',
                           'Protocol', 'Header_Checksum', 'Source_IP', 'Destination_IP']
+        self.__IP_32_STRUCT_FORMAT = '!I'
         self.__IP_STRUCT_FORMAT = '!BBHHHBBHII'
         self.__ICMP_STRUCT_FORMAT = '!BBHHH'
         self.ttl = 1
@@ -146,9 +147,8 @@ class Traceroute:
         Функция для вывода случая, когда нет ответа на запрос и проходит timeout.
         :return:
         """
-        print(f'{self.ttl} * ', end='')
         if self.seq == self.amount_of_packets:
-            print()
+            print(f'{self.ttl} *')
 
     # TODO Допи'сать сам вывод консольной утилиты
     def print_trace(self, delay: float, ip_header: dict) -> None:
@@ -158,7 +158,7 @@ class Traceroute:
         :param ip_header:
         :return:
         """
-        ip_address = socket.inet_ntoa(struct.pack('!I', ip_header['Source_IP']))
+        ip_address = socket.inet_ntoa(struct.pack(self.__IP_32_STRUCT_FORMAT, ip_header['Source_IP']))
         try:
             sender_hostname = socket.gethostbyaddr(ip_address)[0]
         except socket.error:
