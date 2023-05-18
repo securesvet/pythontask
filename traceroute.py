@@ -1,3 +1,5 @@
+import select
+
 import os
 import argparse
 import socket
@@ -67,21 +69,30 @@ def calc_checksum(header):
     return ~checksum & 0xFFFF
 
 
+def header_to_dict(names, struct_format, data):
+    unpacked_data = struct.unpack(struct_format, data)
+    return dict(zip(names, unpacked_data))
+
+
 class Traceroute:
     """
     Класс Traceroute реализует работу консольной утилиты
     """
 
-    def __init__(self, destination_host: str, count_of_packets: int, max_hops: int, packet_size: int, timeout: int):
+    def __init__(self, destination_host: str, amount_of_packets: int, max_hops: int, packet_size: int, timeout: int):
         self.destination_host = destination_host
-        self.count_of_packets = count_of_packets
+        self.amount_of_packets = amount_of_packets
         self.max_hops = max_hops
         self.packet_size = packet_size
         self.timeout = timeout
         self.previous_sender_hostname = ''
         self.MIN_SLEEP = 1000
+        self.id = os.getpid() & 0xffff
+        self.seq = 0
         self.ICMP_ECHO_REQUEST = 8
-
+        self.__icmp_keys = ['type', 'code', 'checksum', 'identifier', 'sequence number']
+        self.__ip_keys = ['VersionIHL', 'Type_of_Service', 'Total_Length', 'Identification', 'Flags_FragOffset', 'TTL',
+                          'Protocol', 'Header_Checksum', 'Source_IP', 'Destination_IP']
         self.ttl = 1
 
         try:
@@ -108,13 +119,12 @@ class Traceroute:
         """
         print(Fore.RED + f'traceroute: unknown host {self.destination_host}')
 
-    def get_icmp_packet(self):
-        """
-        Функция чтения ICMP-пакета (вариант для Unix-систем)
-        :return:
-        """
-        pass
+    def print_timeout(self):
+        print(f'{self.ttl} * ', end='')
+        if self.seq == self.amount_of_packets:
+            print()
 
+    #TODO Допи'сать
     def print_trace(self, delay, ip_header):
         """
         Вывод пути для хоста
@@ -137,7 +147,16 @@ class Traceroute:
     def start_traceroute(self):
         icmp_header = None
         while self.ttl <= self.max_hops:
-            pass
+            self.seq = 0
+
+            for i in range(self.amount_of_packets):
+                icmp_header = self.tracer()
+
+            self.ttl += 1
+
+            if icmp_header is not None:
+                if icmp_header['type'] == 0:
+                    break
 
     def tracer(self):
         try:
@@ -147,16 +166,84 @@ class Traceroute:
             print(Fore.RED + f'Error: {socket.error}')
             print(Fore.YELLOW + 'WARNING: You must run traceroute as root in order to send ICMP messages')
 
+            sys.exit()
+
+        self.seq += 1
+
+        sent_time = self.send_icmp_echo(icmp_socket)
+
+        if sent_time is None:
+            return
+
+        receive_time, icmp_header, ip_header = self.receive_icmp_reply(icmp_socket)
+
+        icmp_socket.close()
+        if receive_time:
+            delay = (receive_time - sent_time) * 1000.0
+            self.print_trace(delay, ip_header)
+
+        return icmp_header
+
+    def send_icmp_echo(self, icmp_socket, ):
+
+        header = struct.pack("bbHHh", self.ICMP_ECHO_REQUEST, 0, 0, self.id, self.seq)
+        start_value = 65
+        payload = []
+        for i in range(start_value, start_value + self.packet_size):
+            payload.append(i & 0xff)
+
+        data = bytes(payload)
+
+        checksum = calc_checksum(header + data)
+        header = struct.pack("bbHHh", self.ICMP_ECHO_REQUEST, 0, checksum, self.id, self.seq)
+
+        packet = header + data
+
+        send_time = timer
+
+        try:
+            icmp_socket.sendto(packet, (self.destination_host, 1))
+        except socket.error as err:
+            print("General error: %s", err)
+            icmp_socket.close()
+            return
+
+        return send_time
+
+    # --------------------
+    def receive_icmp_reply(self, icmp_socket):
+
+        timeout = self.timeout / 1000
+        # TODO while true
+
+        reads, send, excepts = select.select([icmp_socket], [], [], timeout)
+
+        receive_time = timer
+
+        if not reads:  # timeout
+            self.print_timeout()
+            return None, None, None
+
+        packet_data, address = icmp_socket.recvfrom(2048)
+
+        icmp_header = header_to_dict(self.__icmp_keys, packet_data[20:28], "bbHHh")
+
+        ip_header = header_to_dict(self.__ip_keys, packet_data[:20], "!BBHHHBBHII")
+
+        return receive_time, icmp_header, ip_header
+
+    # ------------
+
     def traceroute(self):
         if self.destination_ip:
             self.print_start_line()
-            # self.tracer()
+            self.start_traceroute()
         else:
             self.print_host_unknown()
 
 
-def start_traceroute(destination_host: str, icmp_packets=3, packet_size=52, max_hops=32, timeout=1000):
-    traceroute = Traceroute(destination_host, icmp_packets, packet_size, max_hops, timeout)
+def start_traceroute(destination_host: str, amount_of_packets=3, max_hops=32, packet_size=52, timeout=1000):
+    traceroute = Traceroute(destination_host, amount_of_packets, max_hops, packet_size, timeout)
     traceroute.traceroute()
 
 
@@ -165,7 +252,7 @@ if __name__ == '__main__':
         prog='Traceroute',
         description='Program for displaying possible paths and measuring transit delays of packets',
         epilog='coded by Murzin Sviatoslav and Iuriev Artem')
-    parser.add_argument('destination_host', type=str, default='www.mursvet.ru')
+    parser.add_argument('destination_host', type=str, default='www.google.ru')
     parser.add_argument('-m', '--max-hops', required=False, type=int)
     parser.add_argument('-p', '--packet-size', required=False, type=int)
     # args = parser.parse_args(sys.argv[1:])
