@@ -12,6 +12,7 @@ from colorama import Fore, Back, Style
 timer = time.time()
 
 
+# TODO НАПИСАТЬ ТЕСТЫ С МОКАМИ, ТОЧНО, Я ЭТИМ ЗАЙМУСЬ ЗАВТРА, ТЫ МОЖЕШЬ ОСТАЛЬНЫЕ ТУДУШКИ КРОМЕ ПРИНТА ПОДЕЛАТЬ
 def is_valid_ip(ip_address: str) -> bool:
     """
     Функция возвращает значение True, если переданный хост валидный,
@@ -36,7 +37,7 @@ def destination_to_ip(destination: str) -> str:
     return socket.gethostbyname(destination)
 
 
-def calc_checksum(header):
+def calc_checksum(header: bytes) -> int:
     """
     Функция, проверяющая checksum для подтверждения пакета
     :param header:
@@ -93,10 +94,10 @@ class Traceroute:
         self.packet_size = packet_size
         self.timeout = timeout
         self.previous_sender_hostname = ''
-        self.MIN_SLEEP = 1000
+        self.__MIN_SLEEP = 1000
         self.id = os.getpid() & 0xffff
         self.seq = 0
-        self.ICMP_ECHO_REQUEST = 8
+        self.__ICMP_ECHO_REQUEST = 8
         self.__icmp_keys = ['type', 'code', 'checksum', 'identifier', 'sequence number']
         self.__ip_keys = ['VersionIHL', 'Type_of_Service', 'Total_Length', 'Identification', 'Flags_FragOffset', 'TTL',
                           'Protocol', 'Header_Checksum', 'Source_IP', 'Destination_IP']
@@ -107,7 +108,7 @@ class Traceroute:
         except socket.gaierror:
             self.destination_ip = None
 
-    def print_start_line(self):
+    def print_start_line(self) -> None:
         """
         Функция выводит самую первую строку команды Traceroute, пример:
         traceroute to www.mursvet.ru (80.87.110.79), 52 hops max, 32 byte packets
@@ -119,20 +120,25 @@ class Traceroute:
         else:
             print(f'traceroute to {self.destination_host}, {self.max_hops} hops max, {self.packet_size} byte packets ')
 
-    def print_host_unknown(self):
+    def print_host_unknown(self) -> None:
         """
         Вывод утилиты в случае, если был передан неверный destination
         :return:
         """
         print(Fore.RED + f'traceroute: unknown host {self.destination_host}')
 
-    def print_timeout(self):
+    # TODO понять и доделать случай таймаута.
+    def print_timeout(self) -> None:
+        """
+        Функция для вывода случая, когда нет ответа на запрос и проходит timeout.
+        :return:
+        """
         print(f'{self.ttl} * ', end='')
         if self.seq == self.amount_of_packets:
             print()
 
-    # TODO Допи'сать
-    def print_trace(self, delay, ip_header):
+    # TODO Допи'сать сам вывод консольной утилиты
+    def print_trace(self, delay: float, ip_header: dict) -> None:
         """
         Вывод пути для хоста
         :param delay:
@@ -147,13 +153,17 @@ class Traceroute:
 
         # Проверка на то, что мы не ходим по одному и тому же хосту
         if self.previous_sender_hostname != sender_hostname:
-            # По дефолту TTL до десяти
-            if self.ttl < 10:
+            if self.ttl < self.max_hops:
                 print(f'{self.ttl} ')
 
         self.previous_sender_hostname = sender_hostname
 
-    def start_traceroute(self):
+    def start_traceroute(self) -> None:
+        """
+        В этой функции описана основная логика работы traceroute'а
+        Таким образом, идёт цикл, пока TimeToLive не превысит максимального значения
+        :return:
+        """
         icmp_header = None
         while self.ttl <= self.max_hops:
             self.seq = 0
@@ -167,7 +177,11 @@ class Traceroute:
                 if icmp_header['type'] == 0:
                     break
 
-    def tracer(self):
+    def tracer(self) -> dict | None:
+        """
+        Функция возвращает icmp_header, в этой функции идёт создание сокета
+        :return:
+        """
         try:
             icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp'))
             icmp_socket.setsockopt(socket.SOL_IP, socket.IP_TTL, self.ttl)
@@ -193,9 +207,16 @@ class Traceroute:
 
         return icmp_header
 
-    def send_icmp_echo(self, icmp_socket):
-
-        header = struct.pack("bbHHh", self.ICMP_ECHO_REQUEST, 0, 0, self.id, self.seq)
+    # TODO Придумать более осознанное название для данной функции, так как непонятно, почему называется
+    #  send_icmp_echo, когда на деле эта функция возвращает время (в мс) и может логичней будет придумать что-то
+    #  вроде get_icmp_echo или другое
+    def send_icmp_echo(self, icmp_socket: socket) -> float | None:
+        """
+        Функция, отправляющая icmp_echo запрос, на выходе получаем время, за которое прошло это дело.
+        :param icmp_socket:
+        :return:
+        """
+        header = struct.pack("!BBHHH", self.__ICMP_ECHO_REQUEST, 0, 0, self.id, self.seq)
         start_value = 65
         payload = []
         for i in range(start_value, start_value + self.packet_size):
@@ -204,7 +225,7 @@ class Traceroute:
         data = bytes(payload)
 
         checksum = calc_checksum(header + data)
-        header = struct.pack("bbHHh", self.ICMP_ECHO_REQUEST, 0, checksum, self.id, self.seq)
+        header = struct.pack("!BBHHH", self.__ICMP_ECHO_REQUEST, 0, checksum, self.id, self.seq)
 
         packet = header + data
 
@@ -213,15 +234,23 @@ class Traceroute:
         try:
             icmp_socket.sendto(packet, (self.destination_host, 1))
         except socket.error as err:
-            print("General error: %s", err)
+            print(f'Socket error: {err}')
             icmp_socket.close()
             return
 
         return send_time
 
     # --------------------
-    def receive_icmp_reply(self, icmp_socket: socket) -> (float, dict, dict):
 
+    # TODO здесь тоже предложение или изменить название функции, или разделить эту функцию на две, чтобы был понятен
+    #  смысл, а то я уже начинаю путаться, что у нас делает каждая из этих функций
+    def receive_icmp_reply(self, icmp_socket: socket) -> (float, dict, dict):
+        """
+        Функция принимает на вход сокет и на выходе выдаёт три параметра:
+        Время получения пакета, ICMP-header и IP-header
+        :param icmp_socket:
+        :return:
+        """
         timeout = self.timeout / 1000
         # TODO while true
 
@@ -243,7 +272,13 @@ class Traceroute:
 
     # ------------
 
-    def traceroute(self):
+    # TODO По сути, можно здесь оставить эту функцию единственной public, так как это единственная функция,
+    #  которую мы вызываем в этом проекте в main'e, предложение отрефакторить это слегка.
+    def traceroute(self) -> None:
+        """
+        Функция для вызова консольной утилиты traceroute.
+        :return:
+        """
         if self.destination_ip:
             self.print_start_line()
             self.start_traceroute()
@@ -251,8 +286,8 @@ class Traceroute:
             self.print_host_unknown()
 
 
-def start_traceroute(destination_host: str, amount_of_packets=3, max_hops=32, packet_size=52, timeout=1000) -> None:
-    traceroute = Traceroute(destination_host, amount_of_packets, max_hops, packet_size, timeout)
+def start_traceroute(destination: str, amount_of_packets=3, max_hops=32, packet_size=52, timeout=1000) -> None:
+    traceroute = Traceroute(destination, amount_of_packets, max_hops, packet_size, timeout)
     traceroute.traceroute()
 
 
