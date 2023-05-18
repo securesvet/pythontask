@@ -125,7 +125,7 @@ class Traceroute:
     def print_start_line(self) -> None:
         """
         Функция выводит самую первую строку команды Traceroute, пример:
-        traceroute to www.mursvet.ru (80.87.110.79), 52 hops max, 32 byte packets
+        traceroute to www.mursvet.ru (80.87.110.79), 32 hops max, 52 byte packets
         :return:
         """
         if self.destination_ip:
