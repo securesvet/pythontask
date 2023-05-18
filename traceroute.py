@@ -13,6 +13,17 @@ timer = time.time()
 
 
 # TODO НАПИСАТЬ ТЕСТЫ С МОКАМИ, ТОЧНО, Я ЭТИМ ЗАЙМУСЬ ЗАВТРА, ТЫ МОЖЕШЬ ОСТАЛЬНЫЕ ТУДУШКИ КРОМЕ ПРИНТА ПОДЕЛАТЬ
+
+# TODO ОБРАТИ ВНИМАНИЕ НА ЭТИ СТРОКИ КОДА, НАДЕЮСЬ ТЫ СФЕТЧИШЬ ПРОЕКТ И УВИДИШЬ ЭТО. У меня есть как и у всех
+#  нормальных людей VPN. У меня есть программа traceroute на линуксе, которая не работает. Программа. На линуксе.
+#  Консольная. Утилита. Не работает. Когда я бля подключаюсь к ебаному VPN. Угадай что? Консольная утилита, блять,
+#  работает. Вопрос. Это из России уже никакой интернет не идёт никуда или что это за прикол? Самый большой прикол
+#  ещё в том, что мы похоже написали traceroute, которому тоже не нравится то, что подключение идёт из России,
+#  потому вопрос почему бля? Есть предположение, что это из-за особенности ICMP пакетов, и где-то я читал про
+#  ненадёжность traceroute как утилиты для траблшутинга, так что, епт, возможно все неплохо.
+#  Кстати говоря, всё работает почти, осталось только
+#  написать функции для принта результатов и на этом всё.
+
 def is_valid_ip(ip_address: str) -> bool:
     """
     Функция возвращает значение True, если переданный хост валидный,
@@ -101,6 +112,8 @@ class Traceroute:
         self.__icmp_keys = ['type', 'code', 'checksum', 'identifier', 'sequence number']
         self.__ip_keys = ['VersionIHL', 'Type_of_Service', 'Total_Length', 'Identification', 'Flags_FragOffset', 'TTL',
                           'Protocol', 'Header_Checksum', 'Source_IP', 'Destination_IP']
+        self.__IP_STRUCT_FORMAT = '!BBHHHBBHII'
+        self.__ICMP_STRUCT_FORMAT = '!BBHHH'
         self.ttl = 1
 
         try:
@@ -147,16 +160,16 @@ class Traceroute:
         """
         ip_address = socket.inet_ntoa(struct.pack('!I', ip_header['Source_IP']))
         try:
-            sender_hostname = socket.gethostbyname(ip_address)[0]
+            sender_hostname = socket.gethostbyaddr(ip_address)[0]
         except socket.error:
             sender_hostname = ip_address
 
         # Проверка на то, что мы не ходим по одному и тому же хосту
         if self.previous_sender_hostname != sender_hostname:
             if self.ttl < self.max_hops:
-                print(f'{self.ttl} ')
+                print(f'{self.ttl} {sender_hostname} {ip_address} {delay}ms')
 
-        self.previous_sender_hostname = sender_hostname
+            self.previous_sender_hostname = sender_hostname
 
     def start_traceroute(self) -> None:
         """
@@ -216,7 +229,7 @@ class Traceroute:
         :param icmp_socket:
         :return:
         """
-        header = struct.pack("!BBHHH", self.__ICMP_ECHO_REQUEST, 0, 0, self.id, self.seq)
+        header = struct.pack(self.__ICMP_STRUCT_FORMAT, self.__ICMP_ECHO_REQUEST, 0, 0, self.id, self.seq)
         start_value = 65
         payload = []
         for i in range(start_value, start_value + self.packet_size):
@@ -225,7 +238,7 @@ class Traceroute:
         data = bytes(payload)
 
         checksum = calc_checksum(header + data)
-        header = struct.pack("!BBHHH", self.__ICMP_ECHO_REQUEST, 0, checksum, self.id, self.seq)
+        header = struct.pack(self.__ICMP_STRUCT_FORMAT, self.__ICMP_ECHO_REQUEST, 0, checksum, self.id, self.seq)
 
         packet = header + data
 
@@ -252,7 +265,6 @@ class Traceroute:
         :return:
         """
         timeout = self.timeout / 1000
-        # TODO while true
 
         reads, send, excepts = select.select([icmp_socket], [], [], timeout)
 
@@ -264,9 +276,9 @@ class Traceroute:
 
         packet_data, address = icmp_socket.recvfrom(2048)
 
-        icmp_header = header_to_dict(self.__icmp_keys, packet_data[20:28], "bbHHh")
+        icmp_header = header_to_dict(self.__icmp_keys, packet_data[20:28], self.__ICMP_STRUCT_FORMAT)
 
-        ip_header = header_to_dict(self.__ip_keys, packet_data[:20], "!BBHHHBBHII")
+        ip_header = header_to_dict(self.__ip_keys, packet_data[:20], self.__IP_STRUCT_FORMAT)
 
         return receive_time, icmp_header, ip_header
 
@@ -281,12 +293,16 @@ class Traceroute:
         """
         if self.destination_ip:
             self.print_start_line()
-            self.start_traceroute()
+            try:
+                self.start_traceroute()
+            except KeyboardInterrupt:
+                print('The program has been stopped by Ctrl+C')
+                sys.exit()
         else:
             self.print_host_unknown()
 
 
-def start_traceroute(destination: str, amount_of_packets=3, max_hops=32, packet_size=52, timeout=1000) -> None:
+def start_traceroute(destination: str, amount_of_packets=3, max_hops=30, packet_size=52, timeout=1000) -> None:
     traceroute = Traceroute(destination, amount_of_packets, max_hops, packet_size, timeout)
     traceroute.traceroute()
 
@@ -297,10 +313,12 @@ if __name__ == '__main__':
         description='Program for displaying possible paths and measuring transit delays of packets',
         epilog='coded by Murzin Sviatoslav and Iuriev Artem')
     parser.add_argument('destination_host', type=str)
-    parser.add_argument('-m', '--max-hops', required=False, type=int)
-    parser.add_argument('-p', '--packet-size', required=False, type=int)
+    parser.add_argument('-m', '--max-hops', required=False, type=int, default=3)
+    parser.add_argument('-s', '--packet-size', required=False, type=int, default=52)
+    parser.add_argument('-a', '--packet-amount', required=False, type=int, default=3)
+    parser.add_argument('-t', '--timeout', required=False, type=int, default=1000)
     # args = parser.parse_args(sys.argv[1:])
-    args = parser.parse_args(['www.google.com'])
+    args = parser.parse_args(['www.mursvet.ru'])
     destination_host = args.destination_host
     max_hops = args.max_hops
     packet_size = args.packet_size
