@@ -69,7 +69,14 @@ def calc_checksum(header):
     return ~checksum & 0xFFFF
 
 
-def header_to_dict(names, struct_format, data):
+def header_to_dict(names: list[str], data: bytes, struct_format: str) -> dict:
+    """
+    Функция переводит заголовок в словарь
+    :param names:
+    :param data:
+    :param struct_format:
+    :return:
+    """
     unpacked_data = struct.unpack(struct_format, data)
     return dict(zip(names, unpacked_data))
 
@@ -124,7 +131,7 @@ class Traceroute:
         if self.seq == self.amount_of_packets:
             print()
 
-    #TODO Допи'сать
+    # TODO Допи'сать
     def print_trace(self, delay, ip_header):
         """
         Вывод пути для хоста
@@ -143,6 +150,8 @@ class Traceroute:
             # По дефолту TTL до десяти
             if self.ttl < 10:
                 print(f'{self.ttl} ')
+
+        self.previous_sender_hostname = sender_hostname
 
     def start_traceroute(self):
         icmp_header = None
@@ -184,7 +193,7 @@ class Traceroute:
 
         return icmp_header
 
-    def send_icmp_echo(self, icmp_socket, ):
+    def send_icmp_echo(self, icmp_socket):
 
         header = struct.pack("bbHHh", self.ICMP_ECHO_REQUEST, 0, 0, self.id, self.seq)
         start_value = 65
@@ -211,7 +220,7 @@ class Traceroute:
         return send_time
 
     # --------------------
-    def receive_icmp_reply(self, icmp_socket):
+    def receive_icmp_reply(self, icmp_socket: socket) -> (float, dict, dict):
 
         timeout = self.timeout / 1000
         # TODO while true
@@ -242,7 +251,7 @@ class Traceroute:
             self.print_host_unknown()
 
 
-def start_traceroute(destination_host: str, amount_of_packets=3, max_hops=32, packet_size=52, timeout=1000):
+def start_traceroute(destination_host: str, amount_of_packets=3, max_hops=32, packet_size=52, timeout=1000) -> None:
     traceroute = Traceroute(destination_host, amount_of_packets, max_hops, packet_size, timeout)
     traceroute.traceroute()
 
@@ -252,11 +261,11 @@ if __name__ == '__main__':
         prog='Traceroute',
         description='Program for displaying possible paths and measuring transit delays of packets',
         epilog='coded by Murzin Sviatoslav and Iuriev Artem')
-    parser.add_argument('destination_host', type=str, default='www.google.ru')
+    parser.add_argument('destination_host', type=str)
     parser.add_argument('-m', '--max-hops', required=False, type=int)
     parser.add_argument('-p', '--packet-size', required=False, type=int)
     # args = parser.parse_args(sys.argv[1:])
-    args = parser.parse_args(['www.mursvet.ru'])
+    args = parser.parse_args(['www.google.com'])
     destination_host = args.destination_host
     max_hops = args.max_hops
     packet_size = args.packet_size
