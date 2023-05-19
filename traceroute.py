@@ -141,7 +141,6 @@ class Traceroute:
         """
         print(Fore.RED + f'traceroute: unknown host {self.destination_host}')
 
-    # TODO понять и доделать случай таймаута.
     def print_timeout(self) -> None:
         """
         Функция для вывода случая, когда нет ответа на запрос и проходит timeout.
