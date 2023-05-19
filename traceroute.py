@@ -147,8 +147,13 @@ class Traceroute:
         Функция для вывода случая, когда нет ответа на запрос и проходит timeout.
         :return:
         """
+        # Первый пакет
+        if self.seq == 1:
+            print(f'{self.ttl} ', end='')
+        print('* ', end='')
+        # Когда количество пакетов было достигнуто заданному значению
         if self.seq == self.amount_of_packets:
-            print(f'{self.ttl} *')
+            print()
 
     # TODO Допи'сать сам вывод консольной утилиты
     def print_trace(self, delay: float, ip_header: dict) -> None:
