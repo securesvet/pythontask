@@ -1,0 +1,99 @@
+import unittest
+from unittest.mock import patch
+from io import StringIO
+from traceroute import Traceroute, is_valid_ip, destination_to_ip, start_traceroute
+
+
+class TestFunctions(unittest.TestCase):
+
+    def test_is_valid_ip(self):
+        self.assertTrue(is_valid_ip("192.168.0.1"))
+        self.assertTrue(is_valid_ip("10.0.0.1"))
+        self.assertTrue(is_valid_ip("172.16.0.1"))
+        self.assertFalse(is_valid_ip("256.0.0.1"))
+        self.assertFalse(is_valid_ip("192.168.0"))
+        self.assertFalse(is_valid_ip("192.168.0.1.2"))
+        self.assertFalse(is_valid_ip("a192.168.0.1"))
+
+    def test_destination_to_ip(self):
+        self.assertEqual(destination_to_ip("www.mursvet.ru"), "80.87.110.79")
+        self.assertEqual(destination_to_ip("192.168.0.1"), "192.168.0.1")
+        self.assertEqual(destination_to_ip("10.0.0.1"), "10.0.0.1")
+
+    def test_print_start_line_with_destination_ip(self):
+        traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
+        expected_output = "traceroute to www.example.com (93.184.216.34), 30 hops max, 52 byte packets \n"
+        with patch('sys.stdout', new=StringIO()) as fake_output:
+            traceroute.print_start_line()
+            self.assertEqual(fake_output.getvalue(), expected_output)
+
+    def test_print_start_line_without_destination_ip(self):
+        traceroute = Traceroute('invalid.host', 3, 30, 52, 1000)
+        expected_output = "traceroute to invalid.host, 30 hops max, 52 byte packets \n"
+        with patch('sys.stdout', new=StringIO()) as fake_output:
+            traceroute.print_start_line()
+            self.assertEqual(fake_output.getvalue(), expected_output)
+
+    def test_print_host_unknown(self):
+        traceroute = Traceroute('invalid.host', 3, 30, 52, 1000)
+        expected_output = "\x1b[31mtraceroute: unknown host invalid.host\n"
+        with patch('sys.stdout', new=StringIO()) as fake_output:
+            traceroute.print_host_unknown()
+            self.assertEqual(fake_output.getvalue(), expected_output)
+
+    def test_print_timeout(self):
+        traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
+        expected_output = '1 * '
+        with patch('sys.stdout', new=StringIO()) as fake_output:
+            traceroute.print_timeout()
+            self.assertEqual(fake_output.getvalue(), expected_output)
+
+    def test_print_trace(self):
+        traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
+        traceroute.previous_sender_hostname = 'previous.example.com'
+        expected_output = '1 1572390803.dhcp.nefnet.dk 93.184.199.146 10.0ms\n'
+        ip_header = {
+            'Source_IP': 1572390802
+        }
+        with patch('sys.stdout', new=StringIO()) as fake_output:
+            traceroute.print_trace(10.0, ip_header)
+            self.assertEqual(fake_output.getvalue(), expected_output)
+
+    def test_start_traceroute(self):
+        traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
+        expected_output = "1 example.com 93.184.216.34 10.0ms\n"
+        icmp_header = {
+            'type': 0
+        }
+        with patch('traceroute.Traceroute.tracer', return_value=icmp_header):
+            with patch('sys.stdout', new=StringIO()) as fake_output:
+                traceroute.start_traceroute()
+                self.assertEqual(fake_output.getvalue(), expected_output)
+                self.assertEqual(traceroute.ttl, 2)
+
+    def test_send_icmp_echo(self):
+        traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
+        expected_result = 65
+        with patch('socket.socket') as mock_socket:
+            with patch('time.perf_counter', return_value=expected_result):
+                result = traceroute.send_icmp_echo(mock_socket)
+                self.assertEqual(result, expected_result)
+
+    def test_traceroute_with_valid_destination(self):
+        destination = 'www.example.com'
+        expected_output = 'traceroute to www.example.com (93.184.216.34), 30 hops max, 52 byte packets \n1 ' \
+                          'example.com 93.184.216.34 10.0ms\n'
+        with patch('sys.stdout', new=StringIO()) as fake_output:
+            start_traceroute(destination)
+            self.assertEqual(fake_output.getvalue(), expected_output)
+
+    def test_traceroute_with_invalid_destination(self):
+        destination = 'invalid.host'
+        expected_output = "\x1b[31mtraceroute: unknown host invalid.host\n"
+        with patch('sys.stdout', new=StringIO()) as fake_output:
+            start_traceroute(destination)
+            self.assertEqual(fake_output.getvalue(), expected_output)
+
+
+if __name__ == '__main__':
+    unittest.main()
