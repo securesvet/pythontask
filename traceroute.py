@@ -274,7 +274,7 @@ class Traceroute:
             self.print_timeout()
             return None, None, None
 
-        packet_data, address = icmp_socket.recvfrom(2048)
+        packet_data = icmp_socket.recvfrom(2048)[0]
 
         icmp_header = header_to_dict(self.__icmp_keys, packet_data[20:28], self.__ICMP_STRUCT_FORMAT)
 
