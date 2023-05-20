@@ -43,7 +43,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_print_timeout(self):
         traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
-        expected_output = '1 * '
+        expected_output = '* '
         with patch('sys.stdout', new=StringIO()) as fake_output:
             traceroute.print_timeout()
             self.assertEqual(fake_output.getvalue(), expected_output)
@@ -51,7 +51,7 @@ class TestFunctions(unittest.TestCase):
     def test_print_trace(self):
         traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
         traceroute.previous_sender_hostname = 'previous.example.com'
-        expected_output = '1 1572390803.dhcp.nefnet.dk 93.184.199.146 10.0ms\n'
+        expected_output = '1 1572390803.dhcp.nefnet.dk (93.184.199.146) 10.0 ms\n'
         ip_header = {
             'Source_IP': 1572390802
         }
