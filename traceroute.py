@@ -140,7 +140,6 @@ class Traceroute:
         if self.seq == self.amount_of_packets:
             print()
 
-    # TODO Допи'сать сам вывод консольной утилиты
     def print_trace(self, delay: float, ip_header: dict) -> None:
         """
         Вывод пути для хоста
