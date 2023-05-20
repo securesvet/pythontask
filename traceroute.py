@@ -7,22 +7,8 @@ import struct
 import sys
 import time
 import re
-from colorama import Fore, Back, Style
-
-timer = time.time()
-
-
-# TODO НАПИСАТЬ ТЕСТЫ С МОКАМИ, ТОЧНО, Я ЭТИМ ЗАЙМУСЬ ЗАВТРА, ТЫ МОЖЕШЬ ОСТАЛЬНЫЕ ТУДУШКИ КРОМЕ ПРИНТА ПОДЕЛАТЬ
-
-# TODO ОБРАТИ ВНИМАНИЕ НА ЭТИ СТРОКИ КОДА, НАДЕЮСЬ ТЫ СФЕТЧИШЬ ПРОЕКТ И УВИДИШЬ ЭТО. У меня есть как и у всех
-#  нормальных людей VPN. У меня есть программа traceroute на линуксе, которая не работает. Программа. На линуксе.
-#  Консольная. Утилита. Не работает. Когда я бля подключаюсь к ебаному VPN. Угадай что? Консольная утилита, блять,
-#  работает. Вопрос. Это из России уже никакой интернет не идёт никуда или что это за прикол? Самый большой прикол
-#  ещё в том, что мы похоже написали traceroute, которому тоже не нравится то, что подключение идёт из России,
-#  потому вопрос почему бля? Есть предположение, что это из-за особенности ICMP пакетов, и где-то я читал про
-#  ненадёжность traceroute как утилиты для траблшутинга, так что, епт, возможно все неплохо.
-#  Кстати говоря, всё работает почти, осталось только
-#  написать функции для принта результатов и на этом всё.
+from colorama import Fore
+from time import time as clock
 
 def is_valid_ip(ip_address: str) -> bool:
     """
@@ -46,6 +32,18 @@ def destination_to_ip(destination: str) -> str:
     if is_valid_ip(destination):
         return destination
     return socket.gethostbyname(destination)
+
+
+def header_to_dict(names: list[str], data: bytes, struct_format: str) -> dict:
+    """
+    Функция переводит заголовок в словарь
+    :param names:
+    :param data:
+    :param struct_format:
+    :return:
+    """
+    unpacked_data = struct.unpack(struct_format, data)
+    return dict(zip(names, unpacked_data))
 
 
 def calc_checksum(header: bytes) -> int:
@@ -79,18 +77,6 @@ def calc_checksum(header: bytes) -> int:
         overflow = checksum >> 16
 
     return ~checksum & 0xFFFF
-
-
-def header_to_dict(names: list[str], data: bytes, struct_format: str) -> dict:
-    """
-    Функция переводит заголовок в словарь
-    :param names:
-    :param data:
-    :param struct_format:
-    :return:
-    """
-    unpacked_data = struct.unpack(struct_format, data)
-    return dict(zip(names, unpacked_data))
 
 
 class Traceroute:
@@ -150,7 +136,7 @@ class Traceroute:
         if self.seq == 1:
             print(f'{self.ttl} ', end='')
         print('* ', end='')
-        # Когда количество пакетов было достигнуто заданному значению
+        # Когда количество пакетов было достигнуто заданного значения
         if self.seq == self.amount_of_packets:
             print()
 
@@ -186,7 +172,7 @@ class Traceroute:
             self.seq = 0
 
             for i in range(self.amount_of_packets):
-                icmp_header = self.tracer()
+                icmp_header = self.get_icmp_header()
 
             self.ttl += 1
 
@@ -194,7 +180,7 @@ class Traceroute:
                 if icmp_header['type'] == 0:
                     break
 
-    def tracer(self) -> dict | None:
+    def get_icmp_header(self) -> dict | None:
         """
         Функция возвращает icmp_header, в этой функции идёт создание сокета
         :return:
@@ -211,7 +197,6 @@ class Traceroute:
         self.seq += 1
 
         sent_time = self.send_icmp_echo(icmp_socket)
-
         if sent_time is None:
             return
 
@@ -220,13 +205,10 @@ class Traceroute:
         icmp_socket.close()
         if receive_time:
             delay = (receive_time - sent_time) * 1000.0
+            print(f'sent_time: {sent_time}; receive_time: {receive_time}', end='')
             self.print_trace(delay, ip_header)
-
         return icmp_header
 
-    # TODO Придумать более осознанное название для данной функции, так как непонятно, почему называется
-    #  send_icmp_echo, когда на деле эта функция возвращает время (в мс) и может логичней будет придумать что-то
-    #  вроде get_icmp_echo или другое
     def send_icmp_echo(self, icmp_socket: socket) -> float | None:
         """
         Функция, отправляющая icmp_echo запрос, на выходе получаем время, за которое прошло это дело.
@@ -246,7 +228,7 @@ class Traceroute:
 
         packet = header + data
 
-        send_time = timer
+        send_time = clock()
 
         try:
             icmp_socket.sendto(packet, (self.destination_host, 1))
@@ -257,10 +239,6 @@ class Traceroute:
 
         return send_time
 
-    # --------------------
-
-    # TODO здесь тоже предложение или изменить название функции, или разделить эту функцию на две, чтобы был понятен
-    #  смысл, а то я уже начинаю путаться, что у нас делает каждая из этих функций
     def receive_icmp_reply(self, icmp_socket: socket) -> (float, dict, dict):
         """
         Функция принимает на вход сокет и на выходе выдаёт три параметра:
@@ -272,7 +250,7 @@ class Traceroute:
 
         reads, send, excepts = select.select([icmp_socket], [], [], timeout)
 
-        receive_time = timer
+        receive_time = clock()
 
         if not reads:  # timeout
             self.print_timeout()
@@ -286,10 +264,6 @@ class Traceroute:
 
         return receive_time, icmp_header, ip_header
 
-    # ------------
-
-    # TODO По сути, можно здесь оставить эту функцию единственной public, так как это единственная функция,
-    #  которую мы вызываем в этом проекте в main'e, предложение отрефакторить это слегка.
     def traceroute(self) -> None:
         """
         Функция для вызова консольной утилиты traceroute.
@@ -321,8 +295,8 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--packet-size', required=False, type=int, default=52)
     parser.add_argument('-a', '--packet-amount', required=False, type=int, default=3)
     parser.add_argument('-t', '--timeout', required=False, type=int, default=1000)
-    # args = parser.parse_args(sys.argv[1:])
-    args = parser.parse_args(['www.mursvet.ru'])
+    args = parser.parse_args(sys.argv[1:])
+    # args = parser.parse_args(['www.mursvet.ru'])
     destination_host = args.destination_host
     max_hops = args.max_hops
     packet_size = args.packet_size
