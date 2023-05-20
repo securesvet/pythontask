@@ -157,9 +157,9 @@ class Traceroute:
         # Проверка на то, что мы не ходим по одному и тому же хосту
         if self.previous_sender_hostname != sender_hostname:
             if self.ttl < self.max_hops:
-                if delay < 1.0:
-                    delay = str(f'<{delay}')
-                print(f'{self.ttl} {sender_hostname} ({ip_address}) {delay}ms')
+                if delay < 10.0:
+                    delay = str('<10')
+                print(f'{self.ttl} {sender_hostname} ({ip_address}) {delay} ms')
 
             self.previous_sender_hostname = sender_hostname
 
