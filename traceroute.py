@@ -159,7 +159,7 @@ class Traceroute:
             if self.ttl < self.max_hops:
                 if delay < 1.0:
                     delay = str(f'<{delay}')
-                print(f'{self.ttl} {sender_hostname} {ip_address} {delay}ms')
+                print(f'{self.ttl} {sender_hostname} ({ip_address}) {delay}ms')
 
             self.previous_sender_hostname = sender_hostname
 
