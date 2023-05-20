@@ -5,10 +5,10 @@ import argparse
 import socket
 import struct
 import sys
-import time
 import re
 from colorama import Fore
 from time import time as clock
+
 
 def is_valid_ip(ip_address: str) -> bool:
     """
@@ -84,12 +84,12 @@ class Traceroute:
     Класс Traceroute реализует работу консольной утилиты
     """
 
-    def __init__(self, destination_host: str, amount_of_packets: int, max_hops: int, packet_size: int, timeout: int):
+    def __init__(self, destination_host: str, amount_of_packets: int, max_hops: int, packet_size: int, timeout: float):
         self.destination_host = destination_host
         self.amount_of_packets = amount_of_packets
         self.max_hops = max_hops
         self.packet_size = packet_size
-        self.timeout = timeout
+        self.timeout = timeout / 1000
         self.previous_sender_hostname = ''
         self.__MIN_SLEEP = 1000
         self.id = os.getpid() & 0xffff
@@ -157,6 +157,8 @@ class Traceroute:
         # Проверка на то, что мы не ходим по одному и тому же хосту
         if self.previous_sender_hostname != sender_hostname:
             if self.ttl < self.max_hops:
+                if delay < 1.0:
+                    delay = str(f'<{delay}')
                 print(f'{self.ttl} {sender_hostname} {ip_address} {delay}ms')
 
             self.previous_sender_hostname = sender_hostname
@@ -204,8 +206,7 @@ class Traceroute:
 
         icmp_socket.close()
         if receive_time:
-            delay = (receive_time - sent_time) * 1000.0
-            print(f'sent_time: {sent_time}; receive_time: {receive_time}', end='')
+            delay = round((receive_time - sent_time) * 1000.0, 2)
             self.print_trace(delay, ip_header)
         return icmp_header
 
@@ -246,9 +247,8 @@ class Traceroute:
         :param icmp_socket:
         :return:
         """
-        timeout = self.timeout / 1000
 
-        reads, send, excepts = select.select([icmp_socket], [], [], timeout)
+        reads, send, excepts = select.select([icmp_socket], [], [], self.timeout)
 
         receive_time = clock()
 
