@@ -192,7 +192,6 @@ class Traceroute:
         except socket.error:
             print(Fore.RED + f'Error: {socket.error}')
             print(Fore.YELLOW + 'WARNING: You must run traceroute as root in order to send ICMP messages')
-
             sys.exit()
 
         self.seq += 1
@@ -234,6 +233,10 @@ class Traceroute:
             icmp_socket.sendto(packet, (self.destination_host, 1))
         except socket.error as err:
             print(f'Socket error: {err}')
+            icmp_socket.close()
+            return
+        except Exception as e:
+            print(f'Unexpected exception: {e}')
             icmp_socket.close()
             return
 
