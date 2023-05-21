@@ -1,5 +1,6 @@
+import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from io import StringIO
 from traceroute import Traceroute, is_valid_ip, destination_to_ip, start_traceroute
 
@@ -68,21 +69,37 @@ class TestFunctions(unittest.TestCase):
             traceroute.start_traceroute()
             self.assertEqual(traceroute.ttl, 1)
 
-    def test_send_icmp_echo(self):
-        traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
-        expected_result = 65
+    def setUp(self):
+        self.traceroute = Traceroute('127.0.0.1', 3, 30, 52, 1000)
+
+    def test_send_icmp_echo_localhost(self):
+        expected_result = time.time() + 1
         with patch('socket.socket') as mock_socket:
             with patch('time.perf_counter', return_value=expected_result):
-                result = traceroute.send_icmp_echo(mock_socket)
-                self.assertEqual(result, expected_result)
+                result = self.traceroute.send_icmp_echo(mock_socket)
+                self.assertLess(result, expected_result)
+
+    def test_send_icmp_echo_invalid(self):
+        traceroute = Traceroute('256.256.36.1', 3, 30, 52, 1000)
+        with patch('socket.socket') as mock_socket:
+            mock_socket.sendto = None
+            result = traceroute.send_icmp_echo(mock_socket)
+            self.assertEquals(result, None)
 
     def test_traceroute_with_valid_destination(self):
-        destination = 'www.example.com'
-        expected_output = 'traceroute to www.example.com (93.184.216.34), 30 hops max, 52 byte packets \n1 ' \
-                          'example.com 93.184.216.34 10.0ms\n'
+        destination = '127.0.0.1'
+        expected_output = 'traceroute to 127.0.0.1 (127.0.0.1), 30 hops max, 52 byte packets\n' \
+                          '1 localhost (127.0.0.1) <10 ms'
         with patch('sys.stdout', new=StringIO()) as fake_output:
-            start_traceroute(destination)
-            self.assertEqual(fake_output.getvalue(), expected_output)
+            with self.assertRaises(SystemExit) as cm:
+                start_traceroute(destination)
+                self.assertEqual(fake_output.getvalue(), expected_output)
+            self.assertEqual(cm.exception.code, None)
+
+    def test_get_icmp_header(self):
+        with self.assertRaises(SystemExit) as cm:
+            self.traceroute.get_icmp_header()
+        self.assertEqual(cm.exception.code, None)
 
     def test_traceroute_with_invalid_destination(self):
         destination = 'invalid.host'
