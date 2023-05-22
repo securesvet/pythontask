@@ -295,7 +295,7 @@ if __name__ == '__main__':
         description='Program for displaying possible paths and measuring transit delays of packets',
         epilog='coded by Murzin Sviatoslav and Iuriev Artem')
     parser.add_argument('destination_host', type=str)
-    parser.add_argument('-m', '--max-hops', required=False, type=int, default=3)
+    parser.add_argument('-m', '--max-hops', required=False, type=int, default=10)
     parser.add_argument('-s', '--packet-size', required=False, type=int, default=52)
     parser.add_argument('-a', '--packet-amount', required=False, type=int, default=3)
     parser.add_argument('-t', '--timeout', required=False, type=int, default=1000)
@@ -304,5 +304,4 @@ if __name__ == '__main__':
     destination_host = args.destination_host
     max_hops = args.max_hops
     packet_size = args.packet_size
-    icmp_packets = 3
     start_traceroute(destination_host)
