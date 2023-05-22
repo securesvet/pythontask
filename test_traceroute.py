@@ -130,9 +130,28 @@ class TestFunctions(unittest.TestCase):
                 self.assertEqual(fake_output.getvalue(), expected_output)
             self.assertEqual(cm.exception.code, None)
 
-    def test_get_icmp_header(self):
+    def test_get_icmp_header_exit(self):
         with self.assertRaises(SystemExit) as cm:
             self.traceroute.get_icmp_header()
+        self.assertEqual(cm.exception.code, None)
+
+    @patch('socket.socket')
+    def test_get_icmp_header(self, mock_socket):
+        mock_icmp_socket = mock_socket.return_value
+        mock_icmp_socket.recvfrom.return_value = (b'', ('', 0))
+
+        traceroute = Traceroute(self.traceroute.destination_host, self.traceroute.amount_of_packets,
+                                self.traceroute.max_hops, self.traceroute.packet_size, self.traceroute.timeout)
+        icmp_header = traceroute.get_icmp_header()
+
+        mock_icmp_socket.sendto.assert_called_once()
+        mock_icmp_socket.close.assert_called_once()
+
+        self.assertIsNone(icmp_header)
+
+    def test_traceroute(self):
+        with self.assertRaises(SystemExit) as cm:
+            self.traceroute.traceroute()
         self.assertEqual(cm.exception.code, None)
 
     def test_traceroute_with_invalid_destination(self):
