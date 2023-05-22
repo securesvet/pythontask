@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for
 from visit_db_queries import *
 from forms import SearchForm
 from flask_wtf.csrf import CSRFProtect
-from tabulate import tabulate
 
 app = Flask(__name__)
 
