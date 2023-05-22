@@ -249,8 +249,10 @@ class Traceroute:
         :param icmp_socket:
         :return:
         """
-
-        reads, send, excepts = select.select([icmp_socket], [], [], self.timeout)
+        try:
+            reads, send, excepts = select.select([icmp_socket], [], [], self.timeout)
+        except TypeError:
+            return None, None, None
 
         receive_time = clock()
 
