@@ -8,6 +8,7 @@ Traceroute - консольная утилита, показывающая то�
 ```
 sudo python3 traceroute.py *server_name*
 ```
+Заместо server_name может быть или домен (www.mursvet.ru) или айпи-адрес (192.168.0.30)
 ### Вывод команды:
 ```
 traceroute to google.com (142.250.113.100), 30 hops max, 52 byte packets 
