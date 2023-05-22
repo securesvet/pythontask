@@ -91,7 +91,6 @@ class Traceroute:
         self.packet_size = packet_size
         self.timeout = timeout / 1000
         self.previous_sender_hostname = ''
-        self.__MIN_SLEEP = 1000
         self.id = os.getpid() & 0xffff
         self.seq = 0
         self.__ICMP_ECHO_REQUEST = 8
