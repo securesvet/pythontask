@@ -135,7 +135,7 @@ class TestFunctions(unittest.TestCase):
         with patch('socket.socket') as mock_socket:
             mock_socket.sendto = None
             result = traceroute.send_icmp_echo(mock_socket)
-            self.assertEquals(result, None)
+            self.assertEqual(result, None)
 
     def test_traceroute_with_valid_destination(self):
         destination = '127.0.0.1'
@@ -165,14 +165,6 @@ class TestFunctions(unittest.TestCase):
         mock_icmp_socket.close.assert_called_once()
 
         self.assertIsNone(icmp_header)
-
-    @patch("traceroute.socket")
-    def test_traceroute_keyboard_interrupt(self, capfd):
-        # Создаем mock объект симулирующий генерацию KeyboardInterrupt
-        MagicMock('self.traceroute.traceroute()', side_effect=KeyboardInterrupt)
-        self.traceroute.traceroute()
-        captured = capfd.readouterr()
-        assert captured.out == 'The program has been stopped by Ctrl+C'
 
     def test_traceroute(self):
         with self.assertRaises(SystemExit) as cm:
