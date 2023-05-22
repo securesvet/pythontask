@@ -1,3 +1,4 @@
+import signal
 import time
 import unittest
 from unittest.mock import patch, MagicMock
@@ -164,8 +165,17 @@ class TestFunctions(unittest.TestCase):
 
         self.assertIsNone(icmp_header)
 
+    @patch("traceroute.socket")
+    def test_traceroute_keyboard_interrupt(self, capfd):
+        # Создаем mock объект симулирующий генерацию KeyboardInterrupt
+        MagicMock('self.traceroute.traceroute()', side_effect=KeyboardInterrupt)
+        self.traceroute.traceroute()
+        captured = capfd.readouterr()
+        assert captured.out == 'The program has been stopped by Ctrl+C'
+
     def test_traceroute(self):
         with self.assertRaises(SystemExit) as cm:
+            signal.signal(signal.SIGINT, self.traceroute.traceroute())
             self.traceroute.traceroute()
         self.assertEqual(cm.exception.code, None)
 
