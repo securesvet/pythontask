@@ -105,6 +105,7 @@ class TestFunctions(unittest.TestCase):
         }
         with patch('sys.stdout', new=StringIO()) as fake_output:
             with self.assertRaises(socket.error):
+                unittest.mock.MagicMock('traceroute.print_trace()', side_effect=socket.error)
                 traceroute.print_trace(10.0, ip_header)
 
                 raise socket.error("Socket err")
