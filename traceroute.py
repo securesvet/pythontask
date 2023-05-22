@@ -304,4 +304,6 @@ if __name__ == '__main__':
     destination_host = args.destination_host
     max_hops = args.max_hops
     packet_size = args.packet_size
-    start_traceroute(destination_host)
+    timeout = args.timeout
+    count = args.packet_amount
+    start_traceroute(destination_host, count, max_hops, packet_size, timeout)
