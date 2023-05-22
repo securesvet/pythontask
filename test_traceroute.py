@@ -2,7 +2,7 @@ import time
 import unittest
 from unittest.mock import patch, MagicMock
 from io import StringIO
-from traceroute import Traceroute, is_valid_ip, destination_to_ip, start_traceroute
+from traceroute import Traceroute, is_valid_ip, destination_to_ip, start_traceroute, calc_checksum, header_to_dict
 
 
 class TestFunctions(unittest.TestCase):
@@ -20,6 +20,22 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(destination_to_ip("www.mursvet.ru"), "80.87.110.79")
         self.assertEqual(destination_to_ip("192.168.0.1"), "192.168.0.1")
         self.assertEqual(destination_to_ip("10.0.0.1"), "10.0.0.1")
+
+    def test_header_to_dict(self):
+        header = b'\x45\x00\x00\x28\xbe\xef\x40\x00\x40\x01\x2c\x8e\x7f\x00\x00\x01\x7f\x00\x00\x01'
+        icmp_keys = ['type', 'code', 'checksum', 'identifier', 'sequence number']
+        ICMP_STRUCT_FORMAT = '!BBHHH'
+        expected_output = 0
+        icmp_header = header_to_dict(icmp_keys, header[:8], ICMP_STRUCT_FORMAT)
+        actual_output = icmp_header['code']
+        self.assertEqual(actual_output, expected_output)
+
+    def test_calc_checksum(self):
+        header = b'\x45\x00\x00\x28\xbe\xef\x40\x00\x40\x01\x2c\x8e\x7f\x00\x00\x01\x7f\x00\x00\x01'
+        expected_output = 0x5551
+        actual_output = calc_checksum(header)
+
+        self.assertEqual(actual_output, expected_output)
 
     def test_print_start_line_with_destination_ip(self):
         traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
@@ -45,6 +61,24 @@ class TestFunctions(unittest.TestCase):
     def test_print_timeout(self):
         traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
         expected_output = '* '
+        with patch('sys.stdout', new=StringIO()) as fake_output:
+            traceroute.print_timeout()
+            self.assertEqual(fake_output.getvalue(), expected_output)
+
+    def test_print_timeout_with_first_seq(self):
+        traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
+        traceroute.seq = 1
+        traceroute.ttl = 123456789
+        expected_output = '123456789 * '
+        with patch('sys.stdout', new=StringIO()) as fake_output:
+            traceroute.print_timeout()
+            self.assertEqual(fake_output.getvalue(), expected_output)
+
+    def test_print_timeout_when_seq_equals_aop(self):
+        traceroute = Traceroute('www.example.com', 3, 30, 52, 1000)
+        traceroute.seq = 3
+        traceroute.ttl = 123456789
+        expected_output = '* \n'
         with patch('sys.stdout', new=StringIO()) as fake_output:
             traceroute.print_timeout()
             self.assertEqual(fake_output.getvalue(), expected_output)
