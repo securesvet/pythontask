@@ -2,16 +2,15 @@
 
 {% block main %}
 {% from '/includes/_formhelpers.html' import render_field %}
-<h1>Введите данные, по которым искать в базе данных информацию о посещениях</h1>
 <form action="" method="post" novalidate>
     {{ form.csrf_token }}
     {{ form.hidden_tag() }}
     <p>
         {{ form.ip.label }} <br>
-        {{ form.ip }}<br>
-        {% for error in form.ip.errors %}
-        <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
+        {{ form.ip(class="ip-form") }}<br>
+    <!--        {% for error in form.ip.errors %}-->
+    <!--        <span style="color: red;">[{{ error }}]</span>-->
+    <!--        {% endfor %}-->
     </p>
 
     <p>
@@ -22,6 +21,7 @@
         {{ form.end_date.label }} <br>
         {{ form.end_date }} <br>
     </p>
-    <p>{{ form.submit() }}</p>
+    <p>{{ form.submit(class="btn-submit") }}</p>
+    <span style="color: red;">{{ error_for_no_visit }}</span>
 </form>
 {% endblock %}

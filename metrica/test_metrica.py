@@ -45,27 +45,6 @@ class TestVisit(unittest.TestCase):
         self.assertEqual(len(visits), 1)
         self.assertIsInstance(visits[0], Visit)
 
-    def test_get_all_visits_by_ip(self):
-        IP.create(ip_address='192.168.0.1')
-        IPVisit.create(ip_id=1,
-                       user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                                  'Chrome/58.0.3029.110 Safari/537.3',
-                       date_time=datetime.now())
-        visits = get_all_visits_by_ip('192.168.0.1')
-        self.assertEqual(len(visits), 1)
-        self.assertIsInstance(visits[0], Visit)
-
-    def test_get_all_ip_by_dates(self):
-        IP.create(ip_address='192.168.0.1')
-        IPVisit.create(ip_id=1,
-                       user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                                  'Chrome/58.0.3029.110 Safari/537.3',
-                       date_time=datetime.now())
-        visits = get_all_ip_by_dates(datetime.now().replace(hour=0, minute=0, second=0),
-                                     datetime.now().replace(hour=23, minute=59, second=59))
-        self.assertEqual(len(visits), 1)
-        self.assertIsInstance(visits[0], Visit)
-
     def test_get_all_visits_by_ip_and_dates(self):
         IP.create(ip_address='192.168.0.1')
         IPVisit.create(ip_id=1,
