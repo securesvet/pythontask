@@ -7,7 +7,8 @@ class Visit:
     Сущность посетителя сайта
     """
 
-    def __init__(self, ip_address, user_agent, date_time):
+    def __init__(self, login, ip_address, user_agent, date_time):
+        self.login = login
         self.ip_address = ip_address
         self.user_agent = user_agent
         self.date_time = date_time
@@ -17,6 +18,7 @@ def create_visit_table():
     """Создаёт бд, если она еще не существует"""
     IP.create_table(fail_silently=True)
     IPVisit.create_table(fail_silently=True)
+    Auth.create_table(fail_silently=True)
 
 
 def add_visit(ip_address: str, user_agent: str):
@@ -55,52 +57,6 @@ def get_all_visits() -> list:
         return list_of_visitors
     except DoesNotExist:
         return []
-
-
-# def get_all_visits_by_ip(ip_address: str) -> list:
-#     """
-#     Функция принимает ip клиента.
-#     Возвращает список со всеми посещениями этого клиента
-#     :param ip_address:
-#     :return: list
-#     """
-#     try:
-#         list_of_visitors = []
-#         ip = IP.get(IP.ip_address == ip_address)
-#         visits = IPVisit.select().where(ip.id == ip.id)
-#         for line in visits:
-#             visitor = Visit(ip_address, line.user_agent, line.date_time)
-#             list_of_visitors.append(visitor)
-#         return list_of_visitors
-#     except DoesNotExist:
-#         return []
-#
-#
-# def get_all_ip_by_dates(date_time_start: datetime, date_time_end=datetime.now()) \
-#         -> list:
-#     """
-#     Функция принимает две даты начала отсчета и конца(по дефолту настоящее время).
-#     Возвращает список со всеми клиентами в этом промежутке времени
-#
-#     :param date_time_start: datatime
-#     :param date_time_end: datatime
-#     :return: list
-#     """
-#     if date_time_start > date_time_end:
-#         temp = date_time_end
-#         date_time_end = date_time_start
-#         date_time_start = temp
-#
-#     list_of_visitors = []
-#     date = []
-#     all_visit = IPVisit.select()
-#     for visit in all_visit:
-#         if date_time_start <= visit.date_time <= date_time_end:
-#             date.append(visit.date_time)
-#         ip_address = IP.get(IP.id == visit.ip_id).ip_address
-#         visitor = Visit(ip_address, visit.user_agent, visit.date_time)
-#         list_of_visitors.append(visitor)
-#     return list_of_visitors
 
 
 def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1, 1, 1),
