@@ -22,17 +22,6 @@ def index():
 
     add_visit(current_ip_addr, str(current_user_agent))
 
-    print(get_all_visits_by_ip_and_dates(ip_address='10.249.20.247'))
-    print(get_all_visits_by_ip_and_dates(date_time_start=datetime(2023, 4, 10)))
-    print(get_all_visits_by_ip_and_dates(date_time_end=datetime(2023, 4, 15)))
-    print(get_all_visits_by_ip_and_dates(ip_address='10.249.20.247',
-                                         date_time_start=datetime(2023, 4, 10)))
-    print(get_all_visits_by_ip_and_dates(ip_address='10.249.20.247',
-                                         date_time_end=datetime(2023, 4, 15)))
-    print(get_all_visits_by_ip_and_dates(ip_address='10.249.20.247',
-                                         date_time_start=datetime(2023, 4, 10),
-                                         date_time_end=datetime(2023, 4, 15)))
-
     return render_template('index.html')
 
 
