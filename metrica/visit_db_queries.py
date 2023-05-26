@@ -1,5 +1,4 @@
 from visit_db import *
-import re
 
 
 class Visit:
