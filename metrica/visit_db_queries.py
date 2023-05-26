@@ -1,6 +1,7 @@
 from visit_db import *
 from peewee import DoesNotExist
 
+
 class Visit:
     """
     Сущность посетителя сайта
@@ -13,7 +14,7 @@ class Visit:
         self.date_time = date_time
 
 
-def create_visit_table():
+def create_visit_table() -> None:
     """
     Создаёт бд, если она еще не существует
     """
@@ -97,6 +98,6 @@ def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1, 
         return []
 
 
-def visit_close_connection():
+def visit_close_connection() -> None:
     """Закрываем подключение к базе данных"""
     db.close()
