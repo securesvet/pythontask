@@ -6,6 +6,8 @@ import socket
 import struct
 import sys
 import re
+from argparse import Namespace
+
 from colorama import Fore
 from time import time as clock
 
@@ -288,7 +290,11 @@ def start_traceroute(destination: str, amount_of_packets=3, max_hops=30, packet_
     traceroute.traceroute()
 
 
-if __name__ == '__main__':
+def create_traceroute_args() -> Namespace:
+    """
+    Функция возвращает аргументы для парсинга Traceroute
+    :return:
+    """
     parser = argparse.ArgumentParser(
         prog='Traceroute',
         description='Program for displaying possible paths and measuring transit delays of packets',
@@ -298,8 +304,13 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--packet-size', required=False, type=int, default=52)
     parser.add_argument('-a', '--packet-amount', required=False, type=int, default=3)
     parser.add_argument('-t', '--timeout', required=False, type=int, default=1000)
-    args = parser.parse_args(sys.argv[1:])
-    # args = parser.parse_args(['www.mursvet.ru'])
+    parser.add_argument('-T', '--tcp', required=False, type=bool, default=False)
+    parser.add_argument('-U', '--udp', required=False, type=bool, default=False)
+    return parser.parse_args(sys.argv[1:])
+
+
+if __name__ == '__main__':
+    args = create_traceroute_args()
     destination_host = args.destination_host
     max_hops = args.max_hops
     packet_size = args.packet_size
