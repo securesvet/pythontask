@@ -1,5 +1,5 @@
 from visit_db import *
-
+from peewee import DoesNotExist
 
 class Visit:
     """
@@ -19,7 +19,7 @@ def create_visit_table():
     """
     IP.create_table(fail_silently=True)
     IPVisit.create_table(fail_silently=True)
-    Auth.create_table(fail_silently=True)
+    # Auth.create_table(fail_silently=True)
 
 
 def add_visit(ip_address: str, user_agent: str):

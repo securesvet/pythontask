@@ -12,6 +12,25 @@ app.config['SECRET_KEY'] = 'SomeRandomString'
 csrf = CSRFProtect(app)
 
 
+@app.route('/login')
+def login():
+    """
+    Для странички логина
+    :return:
+    """
+    return render_template('login.html')
+
+
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
+
+
+@app.route('/logout')
+def logout():
+    return 'Logout'
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     """
