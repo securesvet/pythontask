@@ -22,7 +22,7 @@ def create_visit_table():
     # Auth.create_table(fail_silently=True)
 
 
-def add_visit(ip_address: str, user_agent: str):
+def add_visit(ip_address: str, user_agent: str) -> None:
     """
     Функция принимает IP-адрес и user_agent, затем добавляет его в
     базу данных.
