@@ -14,7 +14,9 @@ class Visit:
 
 
 def create_visit_table():
-    """Создаёт бд, если она еще не существует"""
+    """
+    Создаёт бд, если она еще не существует
+    """
     IP.create_table(fail_silently=True)
     IPVisit.create_table(fail_silently=True)
     Auth.create_table(fail_silently=True)
