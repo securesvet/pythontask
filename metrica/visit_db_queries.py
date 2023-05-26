@@ -7,7 +7,8 @@ class Visit:
     Сущность посетителя сайта
     """
 
-    def __init__(self, ip_address, user_agent, date_time):
+    def __init__(self, login, ip_address, user_agent, date_time):
+        self.login = login
         self.ip_address = ip_address
         self.user_agent = user_agent
         self.date_time = date_time
@@ -17,6 +18,7 @@ def create_visit_table():
     """Создаёт бд, если она еще не существует"""
     IP.create_table(fail_silently=True)
     IPVisit.create_table(fail_silently=True)
+    Auth.create_table(fail_silently=True)
 
 
 def add_visit(ip_address: str, user_agent: str):
