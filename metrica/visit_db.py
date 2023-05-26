@@ -1,4 +1,4 @@
-from peewee import *
+from peewee import SqliteDatabase, PrimaryKeyField, Model, CharField, DateTimeField, ForeignKeyField
 from datetime import datetime
 
 db = SqliteDatabase('VISIT.db')
@@ -28,7 +28,7 @@ class Auth(Model):
     """
     login = CharField(help_text='login', unique=True)
     password = CharField(help_text='password')
-    
+
     class Meta:
         table_name = 'Auth'
 
