@@ -22,7 +22,7 @@ class IP(BaseModel):
         table_name = 'IPs'
 
 
-class Auth(Model):
+class Auth(BaseModel):
     """
     В данной таблице хранятся логин и пароль пользователей
     """
