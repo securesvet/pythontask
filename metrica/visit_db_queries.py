@@ -20,7 +20,7 @@ def create_visit_table() -> None:
     """
     IP.create_table(fail_silently=True)
     IPVisit.create_table(fail_silently=True)
-    # Auth.create_table(fail_silently=True)
+    Auth.create_table(fail_silently=True)
 
 
 def add_visit(ip_address: str, user_agent: str) -> None:
@@ -31,17 +31,16 @@ def add_visit(ip_address: str, user_agent: str) -> None:
     :param user_agent: str
     :param header: str
     """
-    global visit
     try:
         ip = IP.get(IP.ip_address == ip_address)
         visit = IPVisit(user_agent=user_agent, ip_id=ip.id)
+        visit.save()
     except DoesNotExist:
         ip = IP(ip_address=ip_address)
         ip.save()
 
         ip = ip.get(IP.ip_address == ip_address)
         visit = IPVisit(user_agent=user_agent, ip_id=ip.id)
-    finally:
         visit.save()
 
 
