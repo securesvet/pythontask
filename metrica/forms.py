@@ -3,8 +3,9 @@ from wtforms import StringField, SubmitField, DateField
 from wtforms.validators import DataRequired, IPAddress
 
 
+
 class SearchForm(FlaskForm):
-    ip = StringField('IP Address', validators=[IPAddress()])
+    ip = StringField('IP Address', validators=[])
     start_date = DateField('Start Date', format='%Y-%m-%d', validators=[])
     end_date = DateField('End Date', format='%Y-%m-%d', validators=[])
     submit = SubmitField('Submit')

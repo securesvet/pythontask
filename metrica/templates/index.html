@@ -2,7 +2,10 @@
 
 {% block main %}
 <h1 class="greeting">Hello world!</h1>
-<h2>Tell me: are you an admin? If yes, then click here, if not, do not click here.</h2>
+<h2>All time visits: {{ count_of_all_visits }}</h2>
+<h2>Unique visits by ip: {{ count_of_visits_by_ip }}</h2>
+<h2>Users registered: {{count_of_auth}}<h2>
+
 <form action="/view_info">
     <input type="submit" class="btn-submit" value="View Info of visitors" />
 </form>

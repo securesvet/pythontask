@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, Blueprint
+from flask import Flask, render_template, request, Blueprint, make_response
 from visit_db_queries import *
 from forms import SearchForm, LoginForm, SignUpForm
 from flask_wtf.csrf import CSRFProtect
@@ -12,6 +12,13 @@ app.config['SECRET_KEY'] = 'SomeRandomString'
 csrf = CSRFProtect(app)
 
 
+@app.route('/cookie/')
+def cookie():
+    res = make_response("Setting a cookie")
+    res.set_cookie('svet', 'bar', max_age=60 * 60 * 24 * 365 * 2)
+    return res
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """
@@ -19,11 +26,16 @@ def login():
     :return:
     """
     form = LoginForm()
+
     if form.validate_on_submit():
         if does_username_exist(form.username.data) and get_password(form.username.data) == form.password.data:
+
+            res = make_response('Setting a cookie')
+            res.set_cookie('username', form.username.data, max_age=60*60*24*365*2)
             return f'Welcome back! {form.username.data}'
         else:
             return 'Wrong username or password!'
+
     return render_template('login.html', form=form)
 
 
@@ -42,8 +54,9 @@ def signup():
 
 @app.route('/logout')
 def logout():
-    form = SignUpForm()
-    return 'Logout'
+    res = make_response("Cookie Removed")
+    res.set_cookie('svet', 'bar', max_age=0)
+    return res
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -56,7 +69,8 @@ def index():
 
     add_visit(request.remote_addr, str(request.user_agent))
 
-    return render_template('index.html')
+    return render_template('index.html', count_of_visits_by_ip=get_count_of_ip_visits(),
+                           count_of_all_visits=get_count_of_all_visits(), count_of_auth=get_count_of_auth())
 
 
 @app.route('/view_info', methods=['GET', 'POST'])

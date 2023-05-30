@@ -64,7 +64,6 @@ def get_password(username: str) -> str:
         return answer
 
 
-
 def add_visit(ip_address: str, user_agent: str) -> None:
     """
     Функция принимает IP-адрес и user_agent, затем добавляет его в
@@ -101,6 +100,18 @@ def get_all_visits() -> list:
         return list_of_visitors
     except DoesNotExist:
         return []
+
+
+def get_count_of_all_visits():
+    return len(get_all_visits())
+
+
+def get_count_of_ip_visits():
+    return IP.select().count()
+
+
+def get_count_of_auth():
+    return Auth.select().count()
 
 
 def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1, 1, 1),
