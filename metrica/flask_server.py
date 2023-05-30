@@ -9,14 +9,6 @@ app.config['SECRET_KEY'] = 'SomeRandomString'
 
 csrf = CSRFProtect(app)
 
-
-@app.route('/setcookie')
-def cookie():
-    res = make_response("Setting a cookie")
-    res.set_cookie('svet', 'bar', max_age=60 * 60 * 24 * 365 * 2)
-    return res
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """
