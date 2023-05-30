@@ -23,6 +23,32 @@ def create_visit_table() -> None:
     Auth.create_table(fail_silently=True)
 
 
+def does_username_exist(username: str) -> bool:
+    """
+    Функция говорит о том, существует ли пользователь с данным юзернеймом
+    :param username:
+    :return:
+    """
+    login = Auth.login(Auth.login == username)
+    if login:
+        return True
+    return False
+
+
+def add_new_user(username: str, password: str) -> None:
+    """
+    Функция принимает юзернейм и пароль, а затем добавляте информацию
+    о новом пользователе в базу данных
+    :param username:
+    :param password:
+    :return:
+    """
+    # if not does_username_exist(username):
+    #     ip =
+    pass
+
+
+
 def add_visit(ip_address: str, user_agent: str) -> None:
     """
     Функция принимает IP-адрес и user_agent, затем добавляет его в
@@ -54,7 +80,7 @@ def get_all_visits() -> list:
         list_of_visitors = []
         for line in visits:
             ip_address = IP.get(id=line.ip_id).ip_address
-            visitor = Visit(ip_address, line.user_agent, line.date_time)
+            visitor = Visit(None, ip_address, line.user_agent, line.date_time)
             list_of_visitors.append(visitor)
         return list_of_visitors
     except DoesNotExist:

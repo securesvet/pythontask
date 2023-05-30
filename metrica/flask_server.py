@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, Blueprint
 from visit_db_queries import *
-from forms import SearchForm
+from forms import SearchForm, LoginForm
 from flask_wtf.csrf import CSRFProtect
 from flask_login import login_user
 from flask_sqlalchemy import SQLAlchemy
@@ -18,12 +18,18 @@ def login():
     Для странички логина
     :return:
     """
-    return render_template('login.html')
+    form = LoginForm()
+    if form.validate_on_submit():
+        return 'Submitted'
+    return render_template('login.html', form=form)
 
 
 @app.route('/signup')
 def signup():
-    return render_template('signup.html')
+    form = LoginForm()
+    if form.validate_on_submit():
+        return 'Submitted'
+    return render_template('signup.html', form=form)
 
 
 @app.route('/logout')
@@ -38,10 +44,8 @@ def index():
     на которой будет показан remote_addr и информация о посещениях
     Request.remote_addr возвращает IP-адрес клиента
     """
-    current_ip_addr = request.remote_addr
-    current_user_agent = request.user_agent
 
-    add_visit(current_ip_addr, str(current_user_agent))
+    add_visit(request.remote_addr, str(request.user_agent))
 
     return render_template('index.html')
 

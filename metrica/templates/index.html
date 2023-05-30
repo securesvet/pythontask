@@ -3,5 +3,13 @@
 {% block main %}
 <h1 class="greeting">Hello world!</h1>
 <h2>Tell me: are you an admin? If yes, then click here, if not, do not click here.</h2>
-<a href="/view_info" class="info-visit">View info of visitors</a>
+<form action="/view_info">
+    <input type="submit" class="btn-submit" value="View Info of visitors" />
+</form>
+<form action="/login">
+    <input type="submit" class="btn-submit" value="Log in" />
+</form>
+<form action="/signup">
+    <input type="submit" class="btn-submit" value="Sign up" />
+</form>
 {% endblock %}
