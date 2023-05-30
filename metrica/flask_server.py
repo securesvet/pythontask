@@ -9,6 +9,7 @@ app.config['SECRET_KEY'] = 'SomeRandomString'
 
 csrf = CSRFProtect(app)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """
@@ -20,8 +21,8 @@ def login():
     if form.validate_on_submit():
         if does_username_exist(form.username.data) and get_password(form.username.data) == form.password.data:
 
-            response = make_response(f'Welcome back! {form.username.data}',)
-            response.set_cookie('username', form.username.data, max_age=60*60*24*365*2)
+            response = make_response(f'Welcome back! {form.username.data}', )
+            response.set_cookie('username', form.username.data, max_age=60 * 60 * 24 * 365 * 2)
             return response
         else:
             return 'Wrong username or password!'
@@ -44,8 +45,8 @@ def signup():
 
 @app.route('/logout')
 def logout():
-    res = make_response("Cookie Removed")
-    res.set_cookie('svet', 'bar', max_age=0)
+    res = make_response('Cookie were Removed')
+    res.set_cookie('username', 'None', max_age=0)
     return res
 
 
