@@ -10,16 +10,18 @@
         <form action="/view_info">
             <input type="submit" class="btn-submit" value="View Info of visitors"/>
         </form>
-
+        <br>
     {% endif %}
 
         <form action="/login">
             <input type="submit" class="btn-submit" value="Log in"/>
         </form>
+        <br>
         <form action="/signup">
             <input type="submit" class="btn-submit" value="Sign up"/>
         </form>
         {% if request.cookies.get('username')%}
+        <br>
         <form action="/logout">
             <input type="submit" class="btn-submit" value="Log out"/>
         </form>
