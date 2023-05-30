@@ -29,10 +29,11 @@ def does_username_exist(username: str) -> bool:
     :param username:
     :return:
     """
-    login = Auth.login(Auth.login == username)
-    if login:
-        return True
-    return False
+    try:
+        login = Auth.get(Auth.login == username)
+        return login.login is not None
+    except DoesNotExist:
+        return False
 
 
 def add_new_user(username: str, password: str) -> None:

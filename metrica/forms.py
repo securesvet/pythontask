@@ -14,3 +14,7 @@ class LoginForm(FlaskForm):
     username = StringField('Username', validators=[])
     password = StringField('Password', validators=[])
     submit = SubmitField('Submit')
+
+
+class SignUpForm(LoginForm):
+    re_password = StringField('Retype Password', validators=[])

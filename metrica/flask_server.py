@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, Blueprint
 from visit_db_queries import *
-from forms import SearchForm, LoginForm
+from forms import SearchForm, LoginForm, SignUpForm
 from flask_wtf.csrf import CSRFProtect
 from flask_login import login_user
 from flask_sqlalchemy import SQLAlchemy
@@ -12,7 +12,7 @@ app.config['SECRET_KEY'] = 'SomeRandomString'
 csrf = CSRFProtect(app)
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     """
     Для странички логина
@@ -20,20 +20,29 @@ def login():
     """
     form = LoginForm()
     if form.validate_on_submit():
-        return 'Submitted'
+        if does_username_exist(form.username.data) and get_password(form.username.data) == form.password.data:
+            return f'Welcome back! {form.username.data}'
+        else:
+            return 'Wrong username or password!'
     return render_template('login.html', form=form)
 
 
-@app.route('/signup')
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    form = LoginForm()
+    form = SignUpForm()
     if form.validate_on_submit():
-        return 'Submitted'
+        if not does_username_exist(form.username.data):
+            if form.password.data == form.re_password.data:
+                add_new_user(form.username.data, form.password.data)
+                return f'{form.username.data} has successfully registered'
+        else:
+            return 'User already exists'
     return render_template('signup.html', form=form)
 
 
 @app.route('/logout')
 def logout():
+    form = SignUpForm()
     return 'Logout'
 
 
