@@ -102,15 +102,15 @@ def get_all_visits() -> list:
         return []
 
 
-def get_count_of_all_visits():
+def get_count_of_all_visits() -> int:
     return len(get_all_visits())
 
 
-def get_count_of_ip_visits():
+def get_count_of_ip_visits() -> int:
     return IP.select().count()
 
 
-def get_count_of_auth():
+def get_count_of_auth() -> int:
     return Auth.select().count()
 
 
