@@ -2,8 +2,6 @@ from flask import Flask, render_template, request, Blueprint, make_response
 from visit_db_queries import *
 from forms import SearchForm, LoginForm, SignUpForm
 from flask_wtf.csrf import CSRFProtect
-from flask_login import login_user
-from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
@@ -12,7 +10,7 @@ app.config['SECRET_KEY'] = 'SomeRandomString'
 csrf = CSRFProtect(app)
 
 
-@app.route('/cookie/')
+@app.route('/setcookie')
 def cookie():
     res = make_response("Setting a cookie")
     res.set_cookie('svet', 'bar', max_age=60 * 60 * 24 * 365 * 2)
@@ -30,9 +28,9 @@ def login():
     if form.validate_on_submit():
         if does_username_exist(form.username.data) and get_password(form.username.data) == form.password.data:
 
-            res = make_response('Setting a cookie')
-            res.set_cookie('username', form.username.data, max_age=60*60*24*365*2)
-            return f'Welcome back! {form.username.data}'
+            response = make_response(f'Welcome back! {form.username.data}',)
+            response.set_cookie('username', form.username.data, max_age=60*60*24*365*2)
+            return response
         else:
             return 'Wrong username or password!'
 
