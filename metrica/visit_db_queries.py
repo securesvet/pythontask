@@ -43,9 +43,24 @@ def add_new_user(username: str, password: str) -> None:
     :param password:
     :return:
     """
-    # if not does_username_exist(username):
-    #     ip =
-    pass
+    if not does_username_exist(username):
+        auth = Auth(login=username, password=password)
+        auth.save()
+
+
+def get_password(username: str) -> str:
+    """
+    Функция принимает юзернейм, и возвращает пароль
+    о новом пользователе в базу данных
+    :param username:
+    :return:
+    """
+    if does_username_exist(username):
+        password = Auth.get(login=username).password
+        return password
+    else:
+        answer = 'User doesnt exist'
+        return answer
 
 
 
