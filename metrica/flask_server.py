@@ -32,6 +32,7 @@ def is_valid_ip(ip_address: str) -> bool:
               r'0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
     return bool(re.match(pattern, ip_address))
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """
@@ -105,7 +106,8 @@ def info_by_ip_date():
                 visits = get_all_visits_by_ip_and_dates(str(form.ip.data))
             if len(visits) != 0:
                 if start_date and end_date:
-                    html_text = '<h2>From {0} to {1}, for {2}</h2>'.format(str(start_date), str(end_date), str(form.ip.data))
+                    html_text = '<h2>From {0} to {1}, for {2}</h2>'.format(str(start_date), str(end_date),
+                                                                           str(form.ip.data))
                 elif start_date:
                     html_text = '<h2>From {0} for {1}</h2>'.format(str(start_date), str(form.ip.data))
                 elif end_date:
@@ -114,7 +116,8 @@ def info_by_ip_date():
                     html_text = '<h2>For all time</h2>'
 
                 for visitor in visits:
-                    html_text += '<ul>UserAgent: {0}<br>DateTime: {1}</ul>'.format(visitor.user_agent, visitor.date_time)
+                    html_text += '<ul>UserAgent: {0}<br>DateTime: {1}</ul>'.format(visitor.user_agent,
+                                                                                   visitor.date_time)
                 return html_text
         else:
             return 'IP is not valid'
