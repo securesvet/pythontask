@@ -21,6 +21,7 @@ def create_visit_table() -> None:
     IP.create_table(fail_silently=True)
     IPVisit.create_table(fail_silently=True)
     Auth.create_table(fail_silently=True)
+    UsersSeen.create_table(fail_silently=True)
 
 
 def does_username_exist(username: str) -> bool:
@@ -113,6 +114,10 @@ def get_count_of_ip_visits() -> int:
 def get_count_of_auth() -> int:
     return Auth.select().count()
 
+# def get_count_of_registered_users_visit(resource: str) -> int:
+#     try:
+#         ip = UsersSeen.get(UsersSeen.ip_address == ip_address)
+
 
 def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1, 1, 1),
                                    date_time_end=datetime.now()) -> list:
@@ -137,7 +142,7 @@ def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1, 
             all_visits = IPVisit.select().where(ip.id == ip.id)
             for visit in all_visits:
                 if date_time_start <= visit.date_time <= date_time_end:
-                    visitor = Visit(ip_address, visit.user_agent, visit.date_time)
+                    visitor = Visit(None, ip_address, visit.user_agent, visit.date_time)
                     list_of_visitors.append(visitor)
         else:
             all_visits = IPVisit.select()

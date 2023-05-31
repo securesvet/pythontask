@@ -33,14 +33,23 @@ class Auth(BaseModel):
         table_name = 'Auth'
 
 
+class UsersSeen(BaseModel):
+    """
+    В данной таблице хранятся usename'ы и ссылки, которые видели юзеры
+    """
+    username = ForeignKeyField(Auth)
+    link = CharField(max_length=64, help_text='link to resource', unique=False)
+
+    class Meta:
+        table_name = 'UsersSeen'
+
+
 class IPVisit(BaseModel):
     """
     Тут хранятся все даты и user-agents в привязке к ip
     """
     user_agent = CharField(help_text='user-agent')
     date_time = DateTimeField(default=datetime.now, help_text='date of visit')
-    # country = CharField(help_text='Country of visit')
-    # login_id = ForeignKeyField(Auth)
     ip_id = ForeignKeyField(IP)
 
     class Meta:
