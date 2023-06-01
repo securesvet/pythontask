@@ -104,19 +104,27 @@ def get_all_visits() -> list:
 
 
 def get_count_of_all_visits() -> int:
+    """
+    Функция возвращает количество всех клиентов
+    :return:
+    """
     return len(get_all_visits())
 
 
 def get_count_of_ip_visits() -> int:
+    """
+    Функция возвращает количество всех IP
+    :return:
+    """
     return IP.select().count()
 
 
 def get_count_of_auth() -> int:
+    """
+    Функция возвращает количество всех зарегистрированных пользователей
+    :return:
+    """
     return Auth.select().count()
-
-# def get_count_of_registered_users_visit(resource: str) -> int:
-#     try:
-#         ip = UsersSeen.get(UsersSeen.ip_address == ip_address)
 
 
 def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1, 1, 1),
