@@ -1,4 +1,5 @@
 from visit_db import *
+from peewee import DoesNotExist
 
 
 class Visit:
@@ -13,14 +14,58 @@ class Visit:
         self.date_time = date_time
 
 
-def create_visit_table():
-    """Создаёт бд, если она еще не существует"""
+def create_visit_table() -> None:
+    """
+    Создаёт бд, если она еще не существует
+    """
     IP.create_table(fail_silently=True)
     IPVisit.create_table(fail_silently=True)
     Auth.create_table(fail_silently=True)
+    UsersSeen.create_table(fail_silently=True)
 
 
-def add_visit(ip_address: str, user_agent: str):
+def does_username_exist(username: str) -> bool:
+    """
+    Функция говорит о том, существует ли пользователь с данным юзернеймом
+    :param username:
+    :return:
+    """
+    try:
+        login = Auth.get(Auth.login == username)
+        return login.login is not None
+    except DoesNotExist:
+        return False
+
+
+def add_new_user(username: str, password: str) -> None:
+    """
+    Функция принимает юзернейм и пароль, а затем добавляте информацию
+    о новом пользователе в базу данных
+    :param username:
+    :param password:
+    :return:
+    """
+    if not does_username_exist(username):
+        auth = Auth(login=username, password=password)
+        auth.save()
+
+
+def get_password(username: str) -> str:
+    """
+    Функция принимает юзернейм, и возвращает пароль
+    о новом пользователе в базу данных
+    :param username:
+    :return:
+    """
+    if does_username_exist(username):
+        password = Auth.get(login=username).password
+        return password
+    else:
+        answer = 'User doesnt exist'
+        return answer
+
+
+def add_visit(ip_address: str, user_agent: str) -> None:
     """
     Функция принимает IP-адрес и user_agent, затем добавляет его в
     базу данных.
@@ -51,11 +96,27 @@ def get_all_visits() -> list:
         list_of_visitors = []
         for line in visits:
             ip_address = IP.get(id=line.ip_id).ip_address
-            visitor = Visit(ip_address, line.user_agent, line.date_time)
+            visitor = Visit(None, ip_address, line.user_agent, line.date_time)
             list_of_visitors.append(visitor)
         return list_of_visitors
     except DoesNotExist:
         return []
+
+
+def get_count_of_all_visits() -> int:
+    return len(get_all_visits())
+
+
+def get_count_of_ip_visits() -> int:
+    return IP.select().count()
+
+
+def get_count_of_auth() -> int:
+    return Auth.select().count()
+
+# def get_count_of_registered_users_visit(resource: str) -> int:
+#     try:
+#         ip = UsersSeen.get(UsersSeen.ip_address == ip_address)
 
 
 def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1, 1, 1),
@@ -81,7 +142,7 @@ def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1, 
             all_visits = IPVisit.select().where(ip.id == ip.id)
             for visit in all_visits:
                 if date_time_start <= visit.date_time <= date_time_end:
-                    visitor = Visit(ip_address, visit.user_agent, visit.date_time)
+                    visitor = Visit(None, ip_address, visit.user_agent, visit.date_time)
                     list_of_visitors.append(visitor)
         else:
             all_visits = IPVisit.select()
@@ -95,6 +156,6 @@ def get_all_visits_by_ip_and_dates(ip_address=None, date_time_start=datetime(1, 
         return []
 
 
-def visit_close_connection():
+def visit_close_connection() -> None:
     """Закрываем подключение к базе данных"""
     db.close()

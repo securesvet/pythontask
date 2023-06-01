@@ -2,7 +2,10 @@
 
 {% block main %}
 <h1>Посмотреть информацию из базы данных:</h1>
-<a href="/info_ip_table">Просмотреть полностью всю таблицу посещений</a> <br>
-<a href="/info_database">Форма для поиска по базе данных</a><br>
-<!--<a href="/info_by_browser">Форма для поиска по браузеру</a><br>-->
+<form action="/info_ip_table">
+    <input type="submit" class="btn-submit" value="Просмотреть полностью всю таблицу посещений" />
+</form>
+<form action="/info_database">
+    <input type="submit" class="btn-submit" value="Форма для поиска по базе данных" />
+</form>
 {% endblock %}

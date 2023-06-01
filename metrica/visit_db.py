@@ -1,4 +1,4 @@
-from peewee import *
+from peewee import SqliteDatabase, PrimaryKeyField, Model, CharField, DateTimeField, ForeignKeyField
 from datetime import datetime
 
 db = SqliteDatabase('VISIT.db')
@@ -28,9 +28,20 @@ class Auth(BaseModel):
     """
     login = CharField(help_text='login', unique=True)
     password = CharField(help_text='password')
-    
+
     class Meta:
         table_name = 'Auth'
+
+
+class UsersSeen(BaseModel):
+    """
+    В данной таблице хранятся usename'ы и ссылки, которые видели юзеры
+    """
+    username = ForeignKeyField(Auth)
+    link = CharField(max_length=64, help_text='link to resource', unique=False)
+
+    class Meta:
+        table_name = 'UsersSeen'
 
 
 class IPVisit(BaseModel):
@@ -39,8 +50,6 @@ class IPVisit(BaseModel):
     """
     user_agent = CharField(help_text='user-agent')
     date_time = DateTimeField(default=datetime.now, help_text='date of visit')
-    country = CharField(help_text='Country of visit')
-    login_id = ForeignKeyField(Auth)
     ip_id = ForeignKeyField(IP)
 
     class Meta:
