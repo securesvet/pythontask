@@ -27,7 +27,7 @@ class Auth(BaseModel):
     В данной таблице хранятся логин и пароль пользователей
     """
     login = CharField(help_text='login', unique=True)
-    password = CharField(help_text='password')
+    password = CharField(help_text='hashed password')
 
     class Meta:
         table_name = 'Auth'

@@ -1,5 +1,8 @@
+import uuid
+
 from visit_db import *
 from peewee import DoesNotExist
+import hashlib
 
 
 class Visit:
@@ -24,6 +27,19 @@ def create_visit_table() -> None:
     UsersSeen.create_table(fail_silently=True)
 
 
+def hash_password(password):
+    salt = uuid.uuid4().hex
+    return hashlib.sha256(salt.encode() + password.encode()).hexdigest() + ':' + salt
+
+
+def check_password(hashed_password, user_password):
+    if hashed_password is not None:
+        password, salt = hashed_password.split(':')
+        return password == hashlib.sha256(salt.encode() + user_password.encode()).hexdigest()
+    else:
+        return False
+
+
 def does_username_exist(username: str) -> bool:
     """
     Функция говорит о том, существует ли пользователь с данным юзернеймом
@@ -45,8 +61,9 @@ def add_new_user(username: str, password: str) -> None:
     :param password:
     :return:
     """
+    password_hash = hash_password(password)
     if not does_username_exist(username):
-        auth = Auth(login=username, password=password)
+        auth = Auth(login=username, password=password_hash)
         auth.save()
 
 
@@ -61,8 +78,7 @@ def get_password(username: str) -> str:
         password = Auth.get(login=username).password
         return password
     else:
-        answer = 'User doesnt exist'
-        return answer
+        return None
 
 
 def add_visit(ip_address: str, user_agent: str) -> None:

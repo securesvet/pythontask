@@ -42,7 +42,7 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        if does_username_exist(form.username.data) and get_password(form.username.data) == form.password.data:
+        if check_password(get_password(form.username.data), form.password.data):
 
             return create_cookies_response_index(form.username.data)
         else:
