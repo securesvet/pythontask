@@ -63,7 +63,8 @@ def signup():
                 else:
                     return 'Passwords are different from each other'
             else:
-                return 'Username should not contain special characters and should be up to 20 symbols in length'
+                return 'Username should not contain special characters (<>?;\'") ' \
+                       'and should be up to 20 symbols in length'
         else:
             return 'User already exists'
     return render_template('signup.html', form=form)
