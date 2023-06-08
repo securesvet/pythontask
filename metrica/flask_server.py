@@ -56,9 +56,14 @@ def signup():
     form = SignUpForm()
     if form.validate_on_submit():
         if not does_username_exist(form.username.data):
-            if form.password.data == form.re_password.data:
-                add_new_user(form.username.data, form.password.data)
-                return create_cookies_response_index(form.username.data)
+            if re.match("^[a-zA-Z0-9_.-]{0,20}$", form.username.data):
+                if form.password.data == form.re_password.data:
+                    add_new_user(form.username.data, form.password.data)
+                    return create_cookies_response_index(form.username.data)
+                else:
+                    return 'Passwords are different from each other'
+            else:
+                return 'Username should not contain special characters and should be up to 20 symbols in length'
         else:
             return 'User already exists'
     return render_template('signup.html', form=form)
