@@ -6,24 +6,25 @@
 <h2>All time visits: {{ count_of_all_visits }}</h2>
 <h2>Unique visits by ip: {{ count_of_visits_by_ip }}</h2>
 <h2>Users registered: {{count_of_auth}}</h2>
-        {% if request.cookies.get('username') == 'admin' %}
-        <form action="/view_info">
-            <input type="submit" class="btn-submit" value="View Info of visitors"/>
-        </form>
-        <br>
-    {% endif %}
-
-        <form action="/login">
-            <input type="submit" class="btn-submit" value="Log in"/>
-        </form>
-        <br>
-        <form action="/signup">
-            <input type="submit" class="btn-submit" value="Sign up"/>
-        </form>
-        {% if request.cookies.get('username')%}
-        <br>
-        <form action="/logout">
-            <input type="submit" class="btn-submit" value="Log out"/>
-        </form>
-        {% endif %}
+{% if request.cookies.get('username') == 'admin' %}
+<form action="/view_info">
+    <input type="submit" class="btn-submit" value="View Info of visitors"/>
+</form>
+<br>
+{% endif %}
+{% if not request.cookies.get('username') %}
+<form action="/login">
+    <input type="submit" class="btn-submit" value="Log in"/>
+</form>
+<br>
+<form action="/signup">
+    <input type="submit" class="btn-submit" value="Sign up"/>
+</form>
+<br>
+{% endif %}
+{% if request.cookies.get('username')%}
+<form action="/logout">
+    <input type="submit" class="btn-submit" value="Log out"/>
+</form>
+{% endif %}
 {% endblock %}
