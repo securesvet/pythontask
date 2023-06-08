@@ -94,7 +94,7 @@ def view_info():
 def info_by_ip_date():
     form = SearchForm()
     if form.is_submitted():
-        if is_valid_ip(form.ip.data):
+        if is_valid_ip(form.ip.data) or form.ip.data is None:
             try:
                 start_date = datetime(form.start_date.data.year, form.start_date.data.month, form.start_date.data.day,
                                       0, 0, 0, 0)
