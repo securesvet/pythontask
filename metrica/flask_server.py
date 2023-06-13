@@ -1,6 +1,6 @@
 import re
 
-from flask import Flask, render_template, request, make_response, Response
+from flask import Flask, render_template, request, make_response, Response, url_for
 from visit_db_queries import *
 from forms import SearchForm, LoginForm, SignUpForm
 from flask_wtf.csrf import CSRFProtect
@@ -12,10 +12,14 @@ app.config['SECRET_KEY'] = 'SomeRandomString'
 csrf = CSRFProtect(app)
 
 
+def get_response_of_index() -> Response:
+    return make_response(render_template('index.html', count_of_visits_by_ip=get_count_of_ip_visits(),
+                                         count_of_all_visits=get_count_of_all_visits(),
+                                         count_of_auth=get_count_of_auth()))
+
+
 def create_cookies_response_index(username: str, max_age: int = 60 * 60 * 24 * 365 * 2) -> Response:
-    response = make_response(render_template('index.html', count_of_visits_by_ip=get_count_of_ip_visits(),
-                                             count_of_all_visits=get_count_of_all_visits(),
-                                             count_of_auth=get_count_of_auth()))
+    response = get_response_of_index()
     response.set_cookie('username', username, max_age)
     return response
 
@@ -43,8 +47,10 @@ def login():
 
     if form.validate_on_submit():
         if check_password(get_password(form.username.data), form.password.data):
-
-            return create_cookies_response_index(form.username.data)
+            response = make_response('')
+            response.set_cookie('username', form.username.data, 60 * 60 * 24 * 365 * 2)
+            response.headers['location'] = url_for('index')
+            return response, 302
         else:
             return 'Wrong username or password!'
 
@@ -72,9 +78,10 @@ def signup():
 
 @app.route('/logout')
 def logout():
-    res = make_response(render_template('index.html'))
-    res.set_cookie('username', 'None', max_age=0)
-    return create_cookies_response_index('', 0)
+    response = make_response('')
+    response.delete_cookie('username')
+    response.headers['location'] = url_for('index')
+    return response, 302
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -87,8 +94,7 @@ def index():
 
     add_visit(request.remote_addr, str(request.user_agent))
 
-    return render_template('index.html', count_of_visits_by_ip=get_count_of_ip_visits(),
-                           count_of_all_visits=get_count_of_all_visits(), count_of_auth=get_count_of_auth())
+    return get_response_of_index()
 
 
 @app.route('/view_info', methods=['GET', 'POST'])
