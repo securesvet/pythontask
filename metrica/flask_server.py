@@ -18,6 +18,24 @@ def get_response_of_index() -> Response:
                                          count_of_auth=get_count_of_auth()))
 
 
+def get_response_with_set_cookie(url: str, key_cookie: str, value_cookie: str,
+                                 max_age: int = 60 * 60 * 24 * 365 * 2) -> Response:
+    """
+    Входной параметр url - то, куда перенаправлять пользователя, после поставленного куки,
+    Входной параметр key_cookie и value_cookie - ключ и значение куки.
+    max_age - время, на которое ставить куки.
+    :param url:
+    :param key_cookie:
+    :param value_cookie:
+    :param max_age:
+    :return:
+    """
+    response = make_response('')
+    response.set_cookie(key_cookie, value_cookie, max_age)
+    response.headers['location'] = url_for(url)
+    return response
+
+
 def create_cookies_response_index(username: str, max_age: int = 60 * 60 * 24 * 365 * 2) -> Response:
     response = get_response_of_index()
     response.set_cookie('username', username, max_age)
@@ -47,10 +65,7 @@ def login():
 
     if form.validate_on_submit():
         if check_password(get_password(form.username.data), form.password.data):
-            response = make_response('')
-            response.set_cookie('username', form.username.data, 60 * 60 * 24 * 365 * 2)
-            response.headers['location'] = url_for('index')
-            return response, 302
+            return get_response_with_set_cookie('index', 'username', form.username.data), 302
         else:
             return 'Wrong username or password!'
 
@@ -65,7 +80,7 @@ def signup():
             if re.match("^[a-zA-Z0-9_.-]{0,20}$", form.username.data):
                 if form.password.data == form.re_password.data:
                     add_new_user(form.username.data, form.password.data)
-                    return create_cookies_response_index(form.username.data)
+                    return get_response_with_set_cookie('index', 'username', form.username.data), 302
                 else:
                     return 'Passwords are different from each other'
             else:
