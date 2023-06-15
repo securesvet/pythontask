@@ -12,17 +12,42 @@ from colorama import Fore
 from time import time as clock
 
 
-def is_valid_ip(ip_address: str) -> bool:
+def is_valid_ipv4(ip_v4_address: str) -> bool:
     """
     Функция возвращает значение True, если переданный хост валидный,
     и возвращает False, если нет
-    :param ip_address:
+    :param ip_v4_address:
     :return:
     """
     # Паттерн для айпи адреса
     pattern = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][' \
               r'0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
-    return bool(re.match(pattern, ip_address))
+    return bool(re.match(pattern, ip_v4_address))
+
+
+def is_valid_ipv6(ip_v6_address: str) -> bool:
+    """
+    Функция возвращает значение True, если переданное значение айпи адреса версии 6 валидно, возвращает False, если нет
+    :param ip_v6_address:
+    :return:
+    """
+    pattern = r'^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,' \
+              r'6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,' \
+              r'4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,' \
+              r'2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,' \
+              r'7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{' \
+              r'0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,' \
+              r'4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$'
+    return bool(re.match(pattern, ip_v6_address))
+
+
+def is_valid_ip(ip_address: str) -> bool:
+    """
+    Возвращает валидный ли айпи вне зависимости IPv6 или IPv4
+    :param ip_address:
+    :return:
+    """
+    return is_valid_ipv4(ip_address) or is_valid_ipv6(ip_address)
 
 
 def destination_to_ip(destination: str) -> str:
@@ -89,7 +114,7 @@ class Traceroute:
     def __init__(self, destination_host: str, amount_of_packets: int, max_hops: int, packet_size: int, timeout: float):
         self.destination_host = destination_host
         self.amount_of_packets = amount_of_packets
-        self.max_hops = max_hops
+        self.max_hops = max_hops + 1
         self.packet_size = packet_size
         self.timeout = timeout / 1000
         self.previous_sender_hostname = ''
@@ -306,6 +331,7 @@ def create_traceroute_args() -> Namespace:
     parser.add_argument('-t', '--timeout', required=False, type=int, default=1000)
     parser.add_argument('-T', '--tcp', required=False, type=bool, default=False)
     parser.add_argument('-U', '--udp', required=False, type=bool, default=False)
+    parser.add_argument('-6', '--ipv6', required=False, type=bool, default=False)
     return parser.parse_args(sys.argv[1:])
 
 
@@ -317,3 +343,4 @@ if __name__ == '__main__':
     timeout = args.timeout
     count = args.packet_amount
     start_traceroute(destination_host, count, max_hops, packet_size, timeout)
+    
