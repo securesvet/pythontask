@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block main %}
+{% from '/includes/_formhelpers.html' import render_field %}
+<form action="" method="post" novalidate>
+    {{ form.csrf_token }}
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.ip.label }} <br>
+        {{ form.ip(class="ip-form") }}<br>
+    <!--        {% for error in form.ip.errors %}-->
+    <!--        <span style="color: red;">[{{ error }}]</span>-->
+    <!--        {% endfor %}-->
+    </p>
+
+    <p>
+        {{ form.start_date.label}} <br>
+        {{ form.start_date }}<br>
+    </p>
+    <p>
+        {{ form.end_date.label }} <br>
+        {{ form.end_date }} <br>
+    </p>
+    <p>{{ form.submit(class="btn-submit") }}</p>
+    <span style="color: red;">{{ error_for_no_visit }}</span>
+</form>
+{% endblock %}
