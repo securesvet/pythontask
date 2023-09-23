@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<h1>Посмотреть информацию из базы данных:</h1>
+<form action="/info_ip_table">
+    <input type="submit" class="btn-submit" value="Просмотреть полностью всю таблицу посещений" />
+</form>
+<form action="/info_database">
+    <input type="submit" class="btn-submit" value="Форма для поиска по базе данных" />
+</form>
+{% endblock %}
